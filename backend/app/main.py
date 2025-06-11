@@ -153,8 +153,7 @@ def setup_routes(app: FastAPI) -> None:
             "version": settings.APP_VERSION,
             "debug": settings.DEBUG
         }
-    
-    # Environment info endpoint (dev only)
+      # Environment info endpoint (dev only)
     if settings.is_development:
         @app.get("/debug/env", tags=["Debug"])
         async def debug_environment():
@@ -168,10 +167,12 @@ def setup_routes(app: FastAPI) -> None:
             return get_registry_info()
     
     # API routes
+    from app.modules.auth.router import router as auth_router
     from app.modules.users.router import router as users_router
     from app.modules.security.router import router as security_router
     from app.modules.organizations.router import router as organizations_router
     
+    app.include_router(auth_router, prefix=settings.API_V1_PREFIX, tags=["Authentication"])
     app.include_router(users_router, prefix=settings.API_V1_PREFIX, tags=["Users"])
     app.include_router(security_router, prefix=settings.API_V1_PREFIX, tags=["Security"])
     app.include_router(organizations_router, prefix=settings.API_V1_PREFIX, tags=["Organizations"])

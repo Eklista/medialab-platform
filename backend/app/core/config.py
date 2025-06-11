@@ -1,6 +1,7 @@
 """
 Core configuration settings for Universidad Galileo MediaLab Platform v1.1
 Complete restructure for scalability and modularity
+UPDATED: Added Redis and Auth configuration for hybrid authentication system
 """
 import os
 from functools import lru_cache
@@ -176,11 +177,109 @@ class Settings(BaseSettings):
     DB_POOL_TIMEOUT: int = Field(default=30, description="Pool connection timeout")
     DB_POOL_RECYCLE: int = Field(default=3600, description="Pool connection recycle time")
     
-    # Configuración de Redis como variables directas  
-    REDIS_URL: str = Field(description="Redis connection URL")
+    # ===================================
+    # REDIS CONFIGURATION (NUEVO)
+    # ===================================
+    REDIS_HOST: str = Field(default="localhost", description="Redis host")
+    REDIS_PORT: int = Field(default=6379, description="Redis port")
+    REDIS_PASSWORD: Optional[str] = Field(default=None, description="Redis password")
+    REDIS_DB: int = Field(default=0, description="Redis database number")
+    REDIS_AUTH_DB: int = Field(default=1, description="Redis DB para auth data")
+    REDIS_TIMEOUT: int = Field(default=5, description="Redis connection timeout")    # Redis legacy compatibility
+    REDIS_URL: str = Field(default="redis://localhost:6379/0", description="Redis connection URL")
     REDIS_KEY_PREFIX: str = Field(default="medialab:", description="Redis key prefix")
     REDIS_TTL: int = Field(default=3600, description="Default Redis TTL in seconds")
     REDIS_MAX_CONNECTIONS: int = Field(default=50, description="Redis connection pool size")
+    
+    # Dynamic Redis URLs (built during initialization)
+    redis_url: Optional[str] = Field(default=None, description="Dynamic Redis URL")
+    redis_auth_url: Optional[str] = Field(default=None, description="Dynamic Redis Auth URL")
+    
+    # Dynamic Redis URLs (computed fields)
+    redis_url: Optional[str] = Field(default=None, description="Computed Redis URL")
+    redis_auth_url: Optional[str] = Field(default=None, description="Computed Redis Auth URL")
+    
+    # ===================================
+    # AUTH SECURITY CONFIGURATION (NUEVO)
+    # ===================================
+    
+    # Rate limiting
+    AUTH_MAX_LOGIN_ATTEMPTS_PER_IP: int = Field(default=10, description="Max login attempts per IP")
+    AUTH_MAX_LOGIN_ATTEMPTS_PER_USER: int = Field(default=5, description="Max login attempts per user")
+    AUTH_RATE_LIMIT_WINDOW_MINUTES: int = Field(default=15, description="Rate limit window")
+    
+    # Session management
+    AUTH_SESSION_TIMEOUT_HOURS: int = Field(default=24, description="Session timeout")
+    AUTH_MAX_CONCURRENT_SESSIONS: int = Field(default=5, description="Max concurrent sessions per user")
+    AUTH_TEMP_2FA_SESSION_MINUTES: int = Field(default=10, description="Temp 2FA session timeout")
+    
+    # Security thresholds
+    AUTH_HIGH_RISK_THRESHOLD: int = Field(default=70, description="High risk score threshold")
+    AUTH_REQUIRE_2FA_THRESHOLD: int = Field(default=60, description="Risk score to require 2FA")
+    AUTH_SUSPICIOUS_THRESHOLD: int = Field(default=70, description="Suspicious activity threshold")
+    
+    # Password policies
+    AUTH_PASSWORD_MIN_LENGTH: int = Field(default=8, description="Minimum password length")
+    AUTH_PASSWORD_REQUIRE_UPPERCASE: bool = Field(default=True, description="Require uppercase")
+    AUTH_PASSWORD_REQUIRE_LOWERCASE: bool = Field(default=True, description="Require lowercase") 
+    AUTH_PASSWORD_REQUIRE_NUMBERS: bool = Field(default=True, description="Require numbers")
+    AUTH_PASSWORD_REQUIRE_SPECIAL: bool = Field(default=False, description="Require special chars")
+    
+    # 2FA configuration
+    AUTH_2FA_ISSUER_NAME: str = Field(default="MediaLab Platform", description="2FA issuer name")
+    AUTH_2FA_CODE_VALIDITY_SECONDS: int = Field(default=30, description="TOTP code validity")
+    AUTH_BACKUP_CODES_COUNT: int = Field(default=10, description="Number of backup codes")
+      # Device trust
+    AUTH_DEVICE_TRUST_DAYS: int = Field(default=30, description="Device trust duration")
+    AUTH_NEW_DEVICE_REQUIRES_2FA: bool = Field(default=True, description="New device requires 2FA")
+    AUTH_NEW_LOCATION_REQUIRES_2FA: bool = Field(default=True, description="New location requires 2FA")
+    
+    # ===================================
+    # MISSING ENVIRONMENT VARIABLES
+    # ===================================
+    
+    # OAuth Configuration
+    OAUTH_GOOGLE_CLIENT_ID: Optional[str] = Field(default=None, description="Google OAuth client ID")
+    OAUTH_GOOGLE_CLIENT_SECRET: Optional[str] = Field(default=None, description="Google OAuth client secret")
+    OAUTH_GOOGLE_REDIRECT_URI: str = Field(default="http://localhost:8000/api/v1/auth/oauth/google/callback", description="Google OAuth redirect URI")
+    
+    # Email Domain Validation
+    ALLOWED_EMAIL_DOMAINS: List[str] = Field(default=["galileo.edu"], description="Allowed email domains")
+    ADMIN_EMAIL_DOMAINS: List[str] = Field(default=["galileo.edu"], description="Admin email domains")
+    
+    # Invitation System
+    INVITATION_TOKEN_EXPIRE_HOURS: int = Field(default=72, description="Invitation token expiration hours")
+    INVITATION_MAX_USES: int = Field(default=1, description="Maximum invitation uses")
+    
+    # Session Management
+    SESSION_CLEANUP_INTERVAL_HOURS: int = Field(default=24, description="Session cleanup interval")
+    SESSION_MAX_CONCURRENT: int = Field(default=5, description="Maximum concurrent sessions")
+    SESSION_EXTEND_ON_ACTIVITY: bool = Field(default=True, description="Extend session on activity")
+    
+    # Auth-specific Rate Limiting
+    AUTH_RATE_LIMIT_LOGIN_ATTEMPTS: int = Field(default=5, description="Login attempts rate limit")
+    AUTH_RATE_LIMIT_LOGIN_WINDOW: int = Field(default=300, description="Login rate limit window")
+    AUTH_RATE_LIMIT_PASSWORD_RESET: int = Field(default=3, description="Password reset rate limit")
+    AUTH_RATE_LIMIT_PASSWORD_RESET_WINDOW: int = Field(default=3600, description="Password reset rate limit window")
+    
+    # Password Policies
+    PASSWORD_MIN_LENGTH: int = Field(default=8, description="Minimum password length")
+    PASSWORD_REQUIRE_UPPERCASE: bool = Field(default=True, description="Require uppercase letters")
+    PASSWORD_REQUIRE_LOWERCASE: bool = Field(default=True, description="Require lowercase letters")
+    PASSWORD_REQUIRE_NUMBERS: bool = Field(default=True, description="Require numbers")
+    PASSWORD_REQUIRE_SPECIAL: bool = Field(default=True, description="Require special characters")
+    PASSWORD_MAX_AGE_DAYS: int = Field(default=90, description="Password maximum age in days")
+    PASSWORD_HISTORY_COUNT: int = Field(default=5, description="Password history count")
+    
+    # Account Lockout
+    ACCOUNT_LOCKOUT_ATTEMPTS: int = Field(default=5, description="Account lockout attempts threshold")
+    ACCOUNT_LOCKOUT_DURATION: int = Field(default=1800, description="Account lockout duration in seconds")
+    ACCOUNT_LOCKOUT_RESET_TIME: int = Field(default=3600, description="Account lockout reset time")
+    
+    # TOTP Configuration
+    SECURITY_TOTP_ISSUER: str = Field(default="Universidad Galileo MediaLab", description="TOTP issuer name")
+    SECURITY_TOTP_VALID_WINDOW: int = Field(default=1, description="TOTP valid window")
+    SECURITY_BACKUP_CODES_COUNT: int = Field(default=10, description="Backup codes count")
     
     # Configuración de seguridad como variables directas
     SECURITY_SECRET_KEY: str = Field(description="Main application secret key")
@@ -260,12 +359,26 @@ class Settings(BaseSettings):
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self._build_redis_urls()  # Construir URLs de Redis
         self._apply_environment_overrides()
         if self.ENVIRONMENT == "development":
             print(f"[DEBUG] DB URL: {self.DB_URL}")
-            print(f"[DEBUG] Redis URL: {self.REDIS_URL}")
+            print(f"[DEBUG] Redis URL: {self.redis_url}")
+            print(f"[DEBUG] Redis Auth URL: {self.redis_auth_url}")
             print(f"[DEBUG] Secret Key: {self.SECURITY_SECRET_KEY[:20]}...")
         self._validate_environment_config()
+    
+    def _build_redis_urls(self):
+        """Construir URLs de Redis dinámicamente"""
+        if self.REDIS_PASSWORD:
+            self.redis_url = f"redis://:{self.REDIS_PASSWORD}@{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
+            self.redis_auth_url = f"redis://:{self.REDIS_PASSWORD}@{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_AUTH_DB}"
+        else:
+            self.redis_url = f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
+            self.redis_auth_url = f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_AUTH_DB}"
+        
+        # Actualizar REDIS_URL para compatibilidad
+        self.REDIS_URL = self.redis_url
     
     def _apply_environment_overrides(self):
         """Apply environment-specific configuration overrides"""
@@ -274,6 +387,9 @@ class Settings(BaseSettings):
             self.FEATURE_ENABLE_API_DOCS = False
             self.SECURITY_COOKIE_SECURE = True
             self.SECURITY_COOKIE_SAMESITE = "strict"
+            # En producción, requerir 2FA para más casos
+            self.AUTH_REQUIRE_2FA_THRESHOLD = 50
+            self.AUTH_HIGH_RISK_THRESHOLD = 60
             
         elif self.ENVIRONMENT == "staging":
             self.DEBUG = False
@@ -282,13 +398,16 @@ class Settings(BaseSettings):
         elif self.ENVIRONMENT == "testing":
             self.DB_ECHO = False
             self.FEATURE_ENABLE_EMAIL_VERIFICATION = False
+            # En testing, relajar restricciones
+            self.AUTH_MAX_LOGIN_ATTEMPTS_PER_IP = 50
+            self.AUTH_MAX_LOGIN_ATTEMPTS_PER_USER = 20
     
     def _validate_environment_config(self):
         """Validate configuration based on environment"""
         if self.ENVIRONMENT == "production":
             required_vars = [
                 ("DB_URL", self.DB_URL),
-                ("REDIS_URL", self.REDIS_URL),
+                ("REDIS_HOST", self.REDIS_HOST),
                 ("SECURITY_SECRET_KEY", self.SECURITY_SECRET_KEY),
                 ("SECURITY_JWT_SECRET_KEY", self.SECURITY_JWT_SECRET_KEY),
                 ("SECURITY_JWE_SECRET_KEY", self.SECURITY_JWE_SECRET_KEY),
@@ -302,7 +421,10 @@ class Settings(BaseSettings):
             if missing_vars:
                 raise ValueError(f"Missing required environment variables: {', '.join(missing_vars)}")
     
-    # Properties para compatibilidad con el código existente
+    # ===================================
+    # PROPERTIES PARA COMPATIBILIDAD
+    # ===================================
+    
     @property
     def database(self):
         """Compatibility property for database settings"""
@@ -401,6 +523,47 @@ class Settings(BaseSettings):
             'AWS_REGION': "us-east-1",
             'AWS_S3_BUCKET': None,
             'GOOGLE_ANALYTICS_ID': None,
+        })()
+    
+    # ===================================
+    # NEW AUTH PROPERTIES
+    # ===================================
+    
+    @property
+    def auth(self):
+        """Auth configuration settings"""
+        return type('AuthSettings', (), {
+            # Rate limiting
+            'MAX_LOGIN_ATTEMPTS_PER_IP': self.AUTH_MAX_LOGIN_ATTEMPTS_PER_IP,
+            'MAX_LOGIN_ATTEMPTS_PER_USER': self.AUTH_MAX_LOGIN_ATTEMPTS_PER_USER,
+            'RATE_LIMIT_WINDOW_MINUTES': self.AUTH_RATE_LIMIT_WINDOW_MINUTES,
+            
+            # Session management
+            'SESSION_TIMEOUT_HOURS': self.AUTH_SESSION_TIMEOUT_HOURS,
+            'MAX_CONCURRENT_SESSIONS': self.AUTH_MAX_CONCURRENT_SESSIONS,
+            'TEMP_2FA_SESSION_MINUTES': self.AUTH_TEMP_2FA_SESSION_MINUTES,
+            
+            # Security thresholds
+            'HIGH_RISK_THRESHOLD': self.AUTH_HIGH_RISK_THRESHOLD,
+            'REQUIRE_2FA_THRESHOLD': self.AUTH_REQUIRE_2FA_THRESHOLD,
+            'SUSPICIOUS_THRESHOLD': self.AUTH_SUSPICIOUS_THRESHOLD,
+            
+            # Password policies
+            'PASSWORD_MIN_LENGTH': self.AUTH_PASSWORD_MIN_LENGTH,
+            'PASSWORD_REQUIRE_UPPERCASE': self.AUTH_PASSWORD_REQUIRE_UPPERCASE,
+            'PASSWORD_REQUIRE_LOWERCASE': self.AUTH_PASSWORD_REQUIRE_LOWERCASE,
+            'PASSWORD_REQUIRE_NUMBERS': self.AUTH_PASSWORD_REQUIRE_NUMBERS,
+            'PASSWORD_REQUIRE_SPECIAL': self.AUTH_PASSWORD_REQUIRE_SPECIAL,
+            
+            # 2FA configuration
+            '2FA_ISSUER_NAME': self.AUTH_2FA_ISSUER_NAME,
+            '2FA_CODE_VALIDITY_SECONDS': self.AUTH_2FA_CODE_VALIDITY_SECONDS,
+            'BACKUP_CODES_COUNT': self.AUTH_BACKUP_CODES_COUNT,
+            
+            # Device trust
+            'DEVICE_TRUST_DAYS': self.AUTH_DEVICE_TRUST_DAYS,
+            'NEW_DEVICE_REQUIRES_2FA': self.AUTH_NEW_DEVICE_REQUIRES_2FA,
+            'NEW_LOCATION_REQUIRES_2FA': self.AUTH_NEW_LOCATION_REQUIRES_2FA,
         })()
     
     @property

@@ -1,5 +1,6 @@
+# backend/app/modules/users/models/internal_user.py
 """
-Internal User model - CON relaciones CMS restauradas
+Internal User model - CON relaciones AUTH y CMS restauradas
 """
 from datetime import datetime
 from sqlalchemy import String, DateTime, Text, Index
@@ -58,10 +59,14 @@ class InternalUser(BaseModelHybrid):
     email_notifications: Mapped[bool] = mapped_column(nullable=False, default=True)
     sms_notifications: Mapped[bool] = mapped_column(nullable=False, default=False)
     
-    # Relationships - TODAS RESTAURADAS
+    # ===================================
+    # RELATIONSHIPS
+    # ===================================
+    
+    # Organizations relationships
     user_areas = relationship("UserArea", back_populates="user", cascade="all, delete-orphan")
     
-    # UserRole específico para internal users
+    # Security relationships
     user_roles = relationship(
         "UserRole",
         primaryjoin="and_(InternalUser.id==UserRole.user_id, UserRole.user_type=='internal_user')",
@@ -70,9 +75,45 @@ class InternalUser(BaseModelHybrid):
         overlaps="user_roles"
     )
     
-    # ✅ RELACIONES CMS RESTAURADAS
+    # CMS relationships
     authored_videos = relationship("Video", back_populates="author")
     authored_galleries = relationship("Gallery", back_populates="author")
+    
+    # ✅ AUTH RELATIONSHIPS AGREGADAS
+    auth_sessions = relationship(
+        "AuthSession",
+        primaryjoin="and_(InternalUser.id==AuthSession.user_id, AuthSession.user_type=='internal_user')",
+        foreign_keys="[AuthSession.user_id]",
+        cascade="all, delete-orphan"
+    )
+    
+    login_attempts = relationship(
+        "LoginAttempt",
+        primaryjoin="and_(InternalUser.id==LoginAttempt.user_id, LoginAttempt.user_type=='internal_user')",
+        foreign_keys="[LoginAttempt.user_id]",
+        cascade="all, delete-orphan"
+    )
+    
+    totp_devices = relationship(
+        "TotpDevice",
+        primaryjoin="and_(InternalUser.id==TotpDevice.user_id, TotpDevice.user_type=='internal_user')",
+        foreign_keys="[TotpDevice.user_id]",
+        cascade="all, delete-orphan"
+    )
+    
+    backup_codes = relationship(
+        "BackupCode",
+        primaryjoin="and_(InternalUser.id==BackupCode.user_id, BackupCode.user_type=='internal_user')",
+        foreign_keys="[BackupCode.user_id]",
+        cascade="all, delete-orphan"
+    )
+    
+    oauth_accounts = relationship(
+        "OAuthAccount",
+        primaryjoin="and_(InternalUser.id==OAuthAccount.user_id, OAuthAccount.user_type=='internal_user')",
+        foreign_keys="[OAuthAccount.user_id]",
+        cascade="all, delete-orphan"
+    )
     
     # Indexes
     __table_args__ = (

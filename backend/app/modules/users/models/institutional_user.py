@@ -1,5 +1,6 @@
+# backend/app/modules/users/models/institutional_user.py
 """
-Institutional User model - Base unificado
+Institutional User model - CON relaciones AUTH agregadas
 """
 from datetime import datetime
 from sqlalchemy import String, DateTime, Text, Index
@@ -71,16 +72,56 @@ class InstitutionalUser(BaseModelHybrid):
     email_notifications: Mapped[bool] = mapped_column(nullable=False, default=True)
     sms_notifications: Mapped[bool] = mapped_column(nullable=False, default=False)
     
-    # Relationships
+    # ===================================
+    # RELATIONSHIPS
+    # ===================================
+    
+    # Organizations relationships
     user_academic_units = relationship("UserAcademicUnit", back_populates="user", cascade="all, delete-orphan")
     
-    # UserRole específico para institutional users
+    # Security relationships
     user_roles = relationship(
         "UserRole",
         primaryjoin="and_(InstitutionalUser.id==UserRole.user_id, UserRole.user_type=='institutional_user')",
         foreign_keys="[UserRole.user_id]",
         cascade="all, delete-orphan",
         overlaps="user_roles"
+    )
+    
+    # ✅ AUTH RELATIONSHIPS AGREGADAS
+    auth_sessions = relationship(
+        "AuthSession",
+        primaryjoin="and_(InstitutionalUser.id==AuthSession.user_id, AuthSession.user_type=='institutional_user')",
+        foreign_keys="[AuthSession.user_id]",
+        cascade="all, delete-orphan"
+    )
+    
+    login_attempts = relationship(
+        "LoginAttempt",
+        primaryjoin="and_(InstitutionalUser.id==LoginAttempt.user_id, LoginAttempt.user_type=='institutional_user')",
+        foreign_keys="[LoginAttempt.user_id]",
+        cascade="all, delete-orphan"
+    )
+    
+    totp_devices = relationship(
+        "TotpDevice",
+        primaryjoin="and_(InstitutionalUser.id==TotpDevice.user_id, TotpDevice.user_type=='institutional_user')",
+        foreign_keys="[TotpDevice.user_id]",
+        cascade="all, delete-orphan"
+    )
+    
+    backup_codes = relationship(
+        "BackupCode",
+        primaryjoin="and_(InstitutionalUser.id==BackupCode.user_id, BackupCode.user_type=='institutional_user')",
+        foreign_keys="[BackupCode.user_id]",
+        cascade="all, delete-orphan"
+    )
+    
+    oauth_accounts = relationship(
+        "OAuthAccount",
+        primaryjoin="and_(InstitutionalUser.id==OAuthAccount.user_id, OAuthAccount.user_type=='institutional_user')",
+        foreign_keys="[OAuthAccount.user_id]",
+        cascade="all, delete-orphan"
     )
     
     # Indexes
