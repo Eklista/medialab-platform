@@ -1,10 +1,9 @@
 """
-Video model for MediaLab content management
+Video model
 """
 from datetime import date
 from sqlalchemy import String, Text, Integer, Date, ForeignKey, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from typing import Optional
 
 from app.shared.base.base_model import BaseModelWithUUID
 
@@ -12,131 +11,83 @@ from app.shared.base.base_model import BaseModelWithUUID
 class Video(BaseModelWithUUID):
     """
     Video model for MediaLab content
-    Uses UUID for public URLs and embed security
     """
     
     __tablename__ = "videos"
     
     # Content fields
-    title: Mapped[str] = mapped_column(
-        String(200),
-        nullable=False,
-        comment="Video title"
-    )
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    subtitle: Mapped[str] = mapped_column(String(300), nullable=True)
+    description: Mapped[str] = mapped_column(Text, nullable=True)
     
-    subtitle: Mapped[Optional[str]] = mapped_column(
-        String(300),
-        nullable=True,
-        comment="Video subtitle"
-    )
+    # Video source
+    embed_url: Mapped[str] = mapped_column(String(500), nullable=False)
+    original_url: Mapped[str] = mapped_column(String(500), nullable=True)
+    video_id: Mapped[str] = mapped_column(String(100), nullable=True)
     
-    description: Mapped[Optional[str]] = mapped_column(
-        Text,
-        nullable=True,
-        comment="Video description"
-    )
+    # Visual and metadata
+    thumbnail_url: Mapped[str] = mapped_column(String(500), nullable=True)
+    duration: Mapped[int] = mapped_column(Integer, nullable=True)
     
-    # Video source - flexible for future
-    embed_url: Mapped[str] = mapped_column(
-        String(500),
-        nullable=False,
-        comment="YouTube embed URL or future AWS/external service URL"
-    )
+    # Date and classification
+    event_date: Mapped[date] = mapped_column(Date, nullable=False)
+    tags: Mapped[str] = mapped_column(Text, nullable=True)
+    content_type: Mapped[str] = mapped_column(String(50), nullable=False, default="event")
     
-    # Visual
-    thumbnail_url: Mapped[Optional[str]] = mapped_column(
-        String(500),
-        nullable=True,
-        comment="Thumbnail image URL"
-    )
-    
-    # Date management
-    event_date: Mapped[date] = mapped_column(
-        Date,
-        nullable=False,
-        comment="Date of the event (NOT publication date)"
-    )
-    
-    # Tags - simple string for now, JSON array in future
-    tags: Mapped[Optional[str]] = mapped_column(
-        Text,
-        nullable=True,
-        comment="Comma-separated tags (evento, fisicc, 2024)"
-    )
+    # Technical info
+    video_quality: Mapped[str] = mapped_column(String(20), nullable=True)
+    aspect_ratio: Mapped[str] = mapped_column(String(20), nullable=True)
     
     # Relationships
     category_id: Mapped[int] = mapped_column(
         Integer,
         ForeignKey("categories.id", ondelete="RESTRICT"),
-        nullable=False,
-        comment="Foreign key to categories"
+        nullable=False
     )
-    
     author_id: Mapped[int] = mapped_column(
         Integer,
         ForeignKey("internal_users.id", ondelete="RESTRICT"),
-        nullable=False,
-        comment="Foreign key to internal users (author)"
+        nullable=False
     )
     
     # Status and visibility
-    is_published: Mapped[str] = mapped_column(
-        String(1),
-        nullable=False,
-        default="N",
-        comment="Whether video is published (Y/N)"
-    )
+    is_published: Mapped[bool] = mapped_column(nullable=False, default=False)
+    is_featured: Mapped[bool] = mapped_column(nullable=False, default=False)
+    is_public: Mapped[bool] = mapped_column(nullable=False, default=True)
     
-    is_featured: Mapped[str] = mapped_column(
-        String(1),
-        nullable=False,
-        default="N",
-        comment="Whether video is featured (Y/N)"
-    )
+    # Publishing workflow
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="draft")
+    approval_required: Mapped[bool] = mapped_column(nullable=False, default=True)
     
-    # SEO and frontend
-    slug: Mapped[Optional[str]] = mapped_column(
-        String(250),
-        nullable=True,
-        unique=True,
-        comment="URL-friendly version of title"
-    )
+    # SEO
+    slug: Mapped[str] = mapped_column(String(250), nullable=True, unique=True)
+    seo_title: Mapped[str] = mapped_column(String(200), nullable=True)
+    seo_description: Mapped[str] = mapped_column(Text, nullable=True)
     
-    # Analytics (simple)
-    view_count: Mapped[int] = mapped_column(
-        Integer,
-        nullable=False,
-        default=0,
-        comment="Number of views"
-    )
+    # Analytics
+    view_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    like_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    share_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    
+    # Settings
+    allow_comments: Mapped[bool] = mapped_column(nullable=False, default=True)
+    allow_embedding: Mapped[bool] = mapped_column(nullable=False, default=True)
     
     # Relationships
-    category = relationship(
-        "Category",
-        back_populates="videos"
-    )
+    category = relationship("Category", back_populates="videos")
+    author = relationship("InternalUser", back_populates="authored_videos")
     
-    author = relationship(
-        "InternalUser",
-        back_populates="authored_videos"  # Need to add this to InternalUser
-    )
-    
-    # Indexes for performance
+    # Critical indexes only
     __table_args__ = (
         Index("idx_video_title", "title"),
         Index("idx_video_category", "category_id"),
         Index("idx_video_author", "author_id"),
-        Index("idx_video_event_date", "event_date"),
         Index("idx_video_published", "is_published"),
-        Index("idx_video_featured", "is_featured"),
+        Index("idx_video_public", "is_public"),
+        Index("idx_video_status", "status"),
         Index("idx_video_slug", "slug"),
-        Index("idx_video_views", "view_count"),
-        Index("idx_video_category_published", "category_id", "is_published"),
-        Index("idx_video_category_date", "category_id", "event_date"),
-        Index("idx_video_published_date", "is_published", "event_date"),
-        Index("idx_video_published_featured", "is_published", "is_featured"),
-        Index("idx_video_category_published_date", "category_id", "is_published", "event_date"),
+        Index("idx_video_event_date", "event_date"),
     )
     
     def __repr__(self) -> str:
-        return f"<Video(title={self.title}, category_id={self.category_id})>"
+        return f"<Video(title={self.title})>"

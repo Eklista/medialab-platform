@@ -1,6 +1,7 @@
 """
 Users module models
 """
+from sqlalchemy import CheckConstraint
 from .base_user import BaseUser
 from .internal_user import InternalUser
 from .institutional_user import InstitutionalUser

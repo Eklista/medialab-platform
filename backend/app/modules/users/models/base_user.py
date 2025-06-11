@@ -1,9 +1,8 @@
 """
-Base User model with common fields for all user types
+Base User model
 """
-from datetime import datetime, date
-from typing import Optional
-from sqlalchemy import String, Text, Date, DateTime
+from datetime import datetime
+from sqlalchemy import String, DateTime, Text, Index
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.shared.base.base_model import BaseModelHybrid
@@ -11,159 +10,45 @@ from app.shared.base.base_model import BaseModelHybrid
 
 class BaseUser(BaseModelHybrid):
     """
-    Abstract base user model with common fields for all user types
-    Uses hybrid ID strategy (internal ID + public UUID)
+    Base class for all user types
     """
     
     __abstract__ = True
     
-    # Authentication fields
-    username: Mapped[str] = mapped_column(
-        String(100),
-        nullable=False,
-        unique=True,
-        comment="Unique username for login"
-    )
+    # Authentication
+    username: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
+    email: Mapped[str] = mapped_column(String(150), nullable=False, unique=True)
+    password_hash: Mapped[str] = mapped_column(String(255), nullable=True)
     
-    email: Mapped[str] = mapped_column(
-        String(255),
-        nullable=False,
-        unique=True,
-        comment="Email address (also used for login)"
-    )
+    # Personal info
+    first_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    last_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    phone: Mapped[str] = mapped_column(String(50), nullable=True)
     
-    password_hash: Mapped[str] = mapped_column(
-        String(255),
-        nullable=False,
-        comment="Hashed password"
-    )
+    # Profile
+    profile_photo: Mapped[str] = mapped_column(String(500), nullable=True)
+    bio: Mapped[str] = mapped_column(Text, nullable=True)
     
-    # Personal information
-    first_name: Mapped[str] = mapped_column(
-        String(100),
-        nullable=False,
-        comment="User's first name"
-    )
+    # Settings
+    preferred_language: Mapped[str] = mapped_column(String(10), nullable=False, default="es")
+    timezone: Mapped[str] = mapped_column(String(50), nullable=False, default="America/Guatemala")
     
-    last_name: Mapped[str] = mapped_column(
-        String(100),
-        nullable=False,
-        comment="User's last name"
-    )
+    # Status (using booleans)
+    is_active: Mapped[bool] = mapped_column(nullable=False, default=True)
+    is_verified: Mapped[bool] = mapped_column(nullable=False, default=False)
     
-    phone: Mapped[Optional[str]] = mapped_column(
-        String(50),
-        nullable=True,
-        comment="Contact phone number"
-    )
+    # Activity tracking
+    last_login: Mapped[datetime] = mapped_column(DateTime, nullable=True)
+    login_count: Mapped[int] = mapped_column(nullable=False, default=0)
     
-    # Profile information
-    profile_photo: Mapped[Optional[str]] = mapped_column(
-        String(500),
-        nullable=True,
-        comment="URL or path to profile photo"
-    )
+    # Security
+    failed_login_attempts: Mapped[int] = mapped_column(nullable=False, default=0)
+    locked_until: Mapped[datetime] = mapped_column(DateTime, nullable=True)
+    password_changed_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
     
-    birthday: Mapped[Optional[date]] = mapped_column(
-        Date,
-        nullable=True,
-        comment="Date of birth"
-    )
-    
-    # Status and tracking
-    join_date: Mapped[date] = mapped_column(
-        Date,
-        nullable=False,
-        default=date.today,
-        comment="Date when user joined the platform"
-    )
-    
-    last_login: Mapped[Optional[datetime]] = mapped_column(
-        DateTime,
-        nullable=True,
-        comment="Last login timestamp"
-    )
-    
-    # Account status
-    is_active: Mapped[str] = mapped_column(
-        String(1),
-        nullable=False,
-        default="Y",
-        comment="Whether account is active (Y/N)"
-    )
-    
-    is_verified: Mapped[str] = mapped_column(
-        String(1),
-        nullable=False,
-        default="N",
-        comment="Whether email is verified (Y/N)"
-    )
-    
-    is_locked: Mapped[str] = mapped_column(
-        String(1),
-        nullable=False,
-        default="N",
-        comment="Whether account is locked (Y/N)"
-    )
-    
-    # Password reset
-    reset_token: Mapped[Optional[str]] = mapped_column(
-        String(255),
-        nullable=True,
-        comment="Password reset token"
-    )
-    
-    reset_token_expires: Mapped[Optional[datetime]] = mapped_column(
-        DateTime,
-        nullable=True,
-        comment="Password reset token expiration"
-    )
-    
-    # Additional information
-    bio: Mapped[Optional[str]] = mapped_column(
-        Text,
-        nullable=True,
-        comment="User biography or description"
-    )
-    
-    timezone: Mapped[Optional[str]] = mapped_column(
-        String(50),
-        nullable=True,
-        default="America/Guatemala",
-        comment="User's timezone"
-    )
-    
-    language: Mapped[str] = mapped_column(
-        String(10),
-        nullable=False,
-        default="es",
-        comment="Preferred language (es, en)"
-    )
-    
-    @property
-    def full_name(self) -> str:
-        """Get user's full name"""
-        return f"{self.first_name} {self.last_name}"
-    
-    @property
-    def display_name(self) -> str:
-        """Get display name (first name + last name or username if empty)"""
-        if self.first_name and self.last_name:
-            return self.full_name
-        return self.username
-    
-    @property
-    def is_account_active(self) -> bool:
-        """Check if account is fully active"""
-        return (
-            self.is_active == "Y" and 
-            self.is_verified == "Y" and 
-            self.is_locked == "N"
-        )
-    
-    def update_last_login(self) -> None:
-        """Update last login timestamp"""
-        self.last_login = datetime.utcnow()
+    # Notifications
+    email_notifications: Mapped[bool] = mapped_column(nullable=False, default=True)
+    sms_notifications: Mapped[bool] = mapped_column(nullable=False, default=False)
     
     def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}(username={self.username}, email={self.email})>"
+        return f"<BaseUser(username={self.username})>"

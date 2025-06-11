@@ -1,10 +1,10 @@
 """
-Gallery model for MediaLab photo collections
+Gallery model
 """
 from datetime import date
 from sqlalchemy import String, Text, Integer, Date, ForeignKey, Index, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from typing import Optional, List
+from typing import List, Dict, Any
 
 from app.shared.base.base_model import BaseModelWithUUID
 
@@ -12,148 +12,86 @@ from app.shared.base.base_model import BaseModelWithUUID
 class Gallery(BaseModelWithUUID):
     """
     Gallery model for MediaLab photo collections
-    Uses UUID for public URLs and security
     """
     
     __tablename__ = "galleries"
     
     # Content fields
-    title: Mapped[str] = mapped_column(
-        String(200),
-        nullable=False,
-        comment="Gallery title"
-    )
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    subtitle: Mapped[str] = mapped_column(String(300), nullable=True)
+    description: Mapped[str] = mapped_column(Text, nullable=True)
     
-    subtitle: Mapped[Optional[str]] = mapped_column(
-        String(300),
-        nullable=True,
-        comment="Gallery subtitle"
-    )
+    # Photos storage
+    photos: Mapped[List[Dict[str, Any]]] = mapped_column(JSON, nullable=True)
+    thumbnail_url: Mapped[str] = mapped_column(String(500), nullable=True)
+    cover_photo: Mapped[str] = mapped_column(String(500), nullable=True)
     
-    description: Mapped[Optional[str]] = mapped_column(
-        Text,
-        nullable=True,
-        comment="Gallery description"
-    )
+    # Date and classification
+    event_date: Mapped[date] = mapped_column(Date, nullable=False)
+    tags: Mapped[str] = mapped_column(Text, nullable=True)
+    content_type: Mapped[str] = mapped_column(String(50), nullable=False, default="event")
     
-    # Photos - JSON array for bulk photos
-    photos: Mapped[Optional[List[str]]] = mapped_column(
-        JSON,
-        nullable=True,
-        comment="JSON array of photo URLs/paths"
-    )
+    # Photo statistics
+    photo_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    total_size_mb: Mapped[int] = mapped_column(Integer, nullable=True)
     
-    # Thumbnail
-    thumbnail_url: Mapped[Optional[str]] = mapped_column(
-        String(500),
-        nullable=True,
-        comment="Thumbnail for gallery cards"
-    )
-    
-    # Date management
-    event_date: Mapped[date] = mapped_column(
-        Date,
-        nullable=False,
-        comment="Date of the event"
-    )
-    
-    # Tags - simple string for now, JSON array in future
-    tags: Mapped[Optional[str]] = mapped_column(
-        Text,
-        nullable=True,
-        comment="Comma-separated tags (evento, fisicc, 2024)"
-    )
-    
-    # Photo count for quick reference
-    photo_count: Mapped[int] = mapped_column(
-        Integer,
-        nullable=False,
-        default=0,
-        comment="Total number of photos in gallery"
-    )
+    # Technical information
+    camera_info: Mapped[str] = mapped_column(String(200), nullable=True)
+    photographer: Mapped[str] = mapped_column(String(100), nullable=True)
+    location: Mapped[str] = mapped_column(String(200), nullable=True)
     
     # Relationships
     category_id: Mapped[int] = mapped_column(
         Integer,
         ForeignKey("categories.id", ondelete="RESTRICT"),
-        nullable=False,
-        comment="Foreign key to categories"
+        nullable=False
     )
-    
     author_id: Mapped[int] = mapped_column(
         Integer,
         ForeignKey("internal_users.id", ondelete="RESTRICT"),
-        nullable=False,
-        comment="Foreign key to internal users (author)"
+        nullable=False
     )
     
     # Status and visibility
-    is_published: Mapped[str] = mapped_column(
-        String(1),
-        nullable=False,
-        default="N",
-        comment="Whether gallery is published (Y/N)"
-    )
+    is_published: Mapped[bool] = mapped_column(nullable=False, default=False)
+    is_featured: Mapped[bool] = mapped_column(nullable=False, default=False)
+    is_public: Mapped[bool] = mapped_column(nullable=False, default=True)
     
-    is_featured: Mapped[str] = mapped_column(
-        String(1),
-        nullable=False,
-        default="N",
-        comment="Whether gallery is featured (Y/N)"
-    )
+    # Publishing workflow
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="draft")
+    approval_required: Mapped[bool] = mapped_column(nullable=False, default=True)
     
-    # SEO and frontend
-    slug: Mapped[Optional[str]] = mapped_column(
-        String(250),
-        nullable=True,
-        unique=True,
-        comment="URL-friendly version of title"
-    )
+    # SEO
+    slug: Mapped[str] = mapped_column(String(250), nullable=True, unique=True)
+    seo_title: Mapped[str] = mapped_column(String(200), nullable=True)
+    seo_description: Mapped[str] = mapped_column(Text, nullable=True)
     
-    # Analytics (simple)
-    view_count: Mapped[int] = mapped_column(
-        Integer,
-        nullable=False,
-        default=0,
-        comment="Number of views"
-    )
+    # Analytics
+    view_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    like_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    share_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    download_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     
-    # Download settings
-    allow_download: Mapped[str] = mapped_column(
-        String(1),
-        nullable=False,
-        default="Y",
-        comment="Whether photos can be downloaded (Y/N)"
-    )
+    # Settings
+    allow_download: Mapped[bool] = mapped_column(nullable=False, default=True)
+    allow_comments: Mapped[bool] = mapped_column(nullable=False, default=True)
+    watermark_enabled: Mapped[bool] = mapped_column(nullable=False, default=False)
     
     # Relationships
-    category = relationship(
-        "Category",
-        back_populates="galleries"
-    )
+    category = relationship("Category", back_populates="galleries")
+    author = relationship("InternalUser", back_populates="authored_galleries")
     
-    author = relationship(
-        "InternalUser",
-        back_populates="authored_galleries"
-    )
-    
-    # Indexes for performance
+    # Critical indexes only
     __table_args__ = (
         Index("idx_gallery_title", "title"),
         Index("idx_gallery_category", "category_id"),
         Index("idx_gallery_author", "author_id"),
-        Index("idx_gallery_event_date", "event_date"),
         Index("idx_gallery_published", "is_published"),
-        Index("idx_gallery_featured", "is_featured"),
+        Index("idx_gallery_public", "is_public"),
+        Index("idx_gallery_status", "status"),
         Index("idx_gallery_slug", "slug"),
-        Index("idx_gallery_views", "view_count"),
-        Index("idx_gallery_photo_count", "photo_count"),
-        Index("idx_gallery_category_published", "category_id", "is_published"),
-        Index("idx_gallery_category_date", "category_id", "event_date"),
-        Index("idx_gallery_published_date", "is_published", "event_date"),
-        Index("idx_gallery_published_featured", "is_published", "is_featured"),
-        Index("idx_gallery_category_published_date", "category_id", "is_published", "event_date"),
+        Index("idx_gallery_event_date", "event_date"),
     )
     
     def __repr__(self) -> str:
-        return f"<Gallery(title={self.title}, photo_count={self.photo_count})>"
+        return f"<Gallery(title={self.title})>"

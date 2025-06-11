@@ -1,9 +1,8 @@
 """
-Category model for content organization and filtering
+Category model
 """
 from sqlalchemy import String, Text, Integer, ForeignKey, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from typing import Optional
 
 from app.shared.base.base_model import BaseModelWithID
 
@@ -11,89 +10,62 @@ from app.shared.base.base_model import BaseModelWithID
 class Category(BaseModelWithID):
     """
     Category model for organizing content by academic unit and type
-    Enables smart filtering: Academic Unit → Category → Content
-    
-    Examples:
-    - FISICC → Graduación
-    - FISICC → Conferencia  
-    - FISICC → Evento
-    - FING → Fotografías
     """
     
     __tablename__ = "categories"
     
     # Core fields
-    name: Mapped[str] = mapped_column(
-        String(100),
-        nullable=False,
-        comment="Category name (graduación, conferencia, evento, fotografías)"
-    )
-    
-    description: Mapped[Optional[str]] = mapped_column(
-        Text,
-        nullable=True,
-        comment="Category description"
-    )
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    display_name: Mapped[str] = mapped_column(String(150), nullable=True)
+    description: Mapped[str] = mapped_column(Text, nullable=True)
     
     # Academic unit relationship for filtering
     academic_unit_id: Mapped[int] = mapped_column(
         Integer,
         ForeignKey("academic_units.id", ondelete="RESTRICT"),
-        nullable=False,
-        comment="Foreign key to academic units for filtering"
+        nullable=False
     )
     
-    # Display and status
-    is_active: Mapped[str] = mapped_column(
-        String(1),
-        nullable=False,
-        default="Y",
-        comment="Whether category is active (Y/N)"
-    )
+    # Category classification
+    category_type: Mapped[str] = mapped_column(String(50), nullable=False, default="event")
+    content_type_focus: Mapped[str] = mapped_column(String(50), nullable=False, default="mixed")
     
-    sort_order: Mapped[int] = mapped_column(
-        Integer,
-        nullable=False,
-        default=100,
-        comment="Display order within academic unit"
-    )
+    # Status and visibility
+    is_active: Mapped[bool] = mapped_column(nullable=False, default=True)
+    is_featured: Mapped[bool] = mapped_column(nullable=False, default=False)
+    is_public: Mapped[bool] = mapped_column(nullable=False, default=True)
+    sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=100)
     
     # SEO and frontend
-    slug: Mapped[Optional[str]] = mapped_column(
-        String(120),
-        nullable=True,
-        comment="URL-friendly version of name"
-    )
+    slug: Mapped[str] = mapped_column(String(120), nullable=True)
+    
+    # Visual identity
+    color: Mapped[str] = mapped_column(String(20), nullable=True)
+    icon: Mapped[str] = mapped_column(String(50), nullable=True)
+    cover_image: Mapped[str] = mapped_column(String(500), nullable=True)
+    
+    # Content management
+    auto_approve_content: Mapped[bool] = mapped_column(nullable=False, default=False)
+    requires_review: Mapped[bool] = mapped_column(nullable=False, default=True)
+    
+    # Statistics (updated by services)
+    total_videos: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    total_galleries: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    total_views: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     
     # Relationships
-    academic_unit = relationship(
-        "AcademicUnit",
-        back_populates="categories"
-    )
+    academic_unit = relationship("AcademicUnit", back_populates="categories")
+    videos = relationship("Video", back_populates="category", cascade="all, delete-orphan")
+    galleries = relationship("Gallery", back_populates="category", cascade="all, delete-orphan")
     
-    videos = relationship(
-        "Video",
-        back_populates="category",
-        cascade="all, delete-orphan"
-    )
-    
-    galleries = relationship(
-        "Gallery", 
-        back_populates="category",
-        cascade="all, delete-orphan"
-    )
-    
-    # Indexes for filtering performance
+    # Critical indexes only
     __table_args__ = (
         Index("idx_category_name", "name"),
         Index("idx_category_academic_unit", "academic_unit_id"),
         Index("idx_category_active", "is_active"),
-        Index("idx_category_sort", "sort_order"),
+        Index("idx_category_public", "is_public"),
         Index("idx_category_slug", "slug"),
-        Index("idx_category_unit_active", "academic_unit_id", "is_active"),
-        Index("idx_category_unit_sort", "academic_unit_id", "sort_order"),
-        Index("idx_category_name_unit", "name", "academic_unit_id"),  # For filtering
     )
     
     def __repr__(self) -> str:
-        return f"<Category(name={self.name}, academic_unit_id={self.academic_unit_id})>"
+        return f"<Category(name={self.name})>"

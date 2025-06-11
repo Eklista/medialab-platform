@@ -1,7 +1,6 @@
 """
 Institutional User model
 """
-from typing import Optional
 from sqlalchemy import String, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -10,85 +9,35 @@ from .base_user import BaseUser
 
 class InstitutionalUser(BaseUser):
     """
-    Institutional User model
+    Institutional User model for university faculty, students, and external clients
     """
     
     __tablename__ = "institutional_users"
     
-    # Info básica institucional
-    institution: Mapped[str] = mapped_column(
-        String(200),
-        nullable=False,
-        default="Universidad Galileo",
-        comment="Institución"
-    )
+    # Institution info
+    institution: Mapped[str] = mapped_column(String(200), nullable=False, default="Universidad Galileo")
+    faculty_id: Mapped[str] = mapped_column(String(50), nullable=True)
     
-    faculty_id: Mapped[Optional[str]] = mapped_column(
-        String(50),
-        nullable=True,
-        comment="ID de facultad/empleado"
-    )
+    # Academic info
+    academic_title: Mapped[str] = mapped_column(String(100), nullable=True)
+    position_title: Mapped[str] = mapped_column(String(150), nullable=True)
     
-    # Info académica básica
-    academic_title: Mapped[Optional[str]] = mapped_column(
-        String(100),
-        nullable=True,
-        comment="Título académico (Dr., Lic., Ing.)"
-    )
+    # Contact info
+    office_phone: Mapped[str] = mapped_column(String(50), nullable=True)
+    office_location: Mapped[str] = mapped_column(String(200), nullable=True)
     
-    position_title: Mapped[Optional[str]] = mapped_column(
-        String(150),
-        nullable=True,
-        comment="Puesto en la institución"
-    )
+    # User type (using booleans)
+    is_faculty: Mapped[bool] = mapped_column(nullable=False, default=False)
+    is_student: Mapped[bool] = mapped_column(nullable=False, default=False)
+    is_external_client: Mapped[bool] = mapped_column(nullable=False, default=False)
     
-    # Contacto institucional
-    office_phone: Mapped[Optional[str]] = mapped_column(
-        String(50),
-        nullable=True,
-        comment="Teléfono de oficina"
-    )
+    # Permissions
+    can_request_projects: Mapped[bool] = mapped_column(nullable=False, default=True)
     
-    office_location: Mapped[Optional[str]] = mapped_column(
-        String(200),
-        nullable=True,
-        comment="Ubicación de oficina"
-    )
-    
-    # Tipo de usuario
-    is_faculty: Mapped[str] = mapped_column(
-        String(1),
-        nullable=False,
-        default="N",
-        comment="Es faculty (Y/N)"
-    )
-    
-    is_student: Mapped[str] = mapped_column(
-        String(1),
-        nullable=False,
-        default="N",
-        comment="Es estudiante (Y/N)"
-    )
-    
-    is_external_client: Mapped[str] = mapped_column(
-        String(1),
-        nullable=False,
-        default="N",
-        comment="Es cliente externo (Y/N)"
-    )
-    
-    # Permisos
-    can_request_projects: Mapped[str] = mapped_column(
-        String(1),
-        nullable=False,
-        default="Y",
-        comment="Puede solicitar proyectos (Y/N)"
-    )
-    
-    # Relaciones
+    # Relationships
     user_roles = relationship(
         "UserRole",
-        back_populates="user",
+        primaryjoin="and_(UserRole.user_id == InstitutionalUser.id, UserRole.user_type == 'institutional_user')",
         cascade="all, delete-orphan"
     )
     
@@ -98,21 +47,13 @@ class InstitutionalUser(BaseUser):
         cascade="all, delete-orphan"
     )
     
-    # Índices básicos
+    # Critical indexes only
     __table_args__ = (
+        Index("idx_institutional_user_username", "username"),
+        Index("idx_institutional_user_email", "email"),
+        Index("idx_institutional_user_active", "is_active"),
         Index("idx_institutional_user_faculty_id", "faculty_id"),
-        Index("idx_institutional_user_institution", "institution"),
-        Index("idx_institutional_user_is_faculty", "is_faculty"),
-        Index("idx_institutional_user_is_student", "is_student"),
-        Index("idx_institutional_user_is_external", "is_external_client"),
-        Index("idx_institutional_user_can_request", "can_request_projects"),
-        # Base user indexes
-        Index("idx_institutional_users_username", "username"),
-        Index("idx_institutional_users_email", "email"),
-        Index("idx_institutional_users_uuid", "uuid"),
-        Index("idx_institutional_users_active", "is_active"),
     )
     
     def __repr__(self) -> str:
-        user_type = "Faculty" if self.is_faculty == "Y" else "Student" if self.is_student == "Y" else "External" if self.is_external_client == "Y" else "Institutional"
-        return f"<InstitutionalUser(username={self.username}, type={user_type})>"
+        return f"<InstitutionalUser(username={self.username})>"

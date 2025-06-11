@@ -1,66 +1,67 @@
 """
-Area model - Simple version for MediaLab internal organization
+Area model
 """
 from sqlalchemy import String, Text, Integer, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from typing import Optional
 
 from app.shared.base.base_model import BaseModelWithID
 
 
 class Area(BaseModelWithID):
     """
-    Simple Area model for MediaLab internal staff organization
-    Used for dashboard display: "Pablo Lacan - Transmisión"
-    
-    Examples:
-    - Transmisión
-    - Producción Audiovisual  
-    - Diseño Gráfico
-    - Motion Graphics
+    Area model for MediaLab internal organization
     """
     
     __tablename__ = "areas"
     
-    # Core fields only
-    name: Mapped[str] = mapped_column(
-        String(150),
-        nullable=False,
-        unique=True,
-        comment="Area name"
-    )
+    # Core fields
+    name: Mapped[str] = mapped_column(String(150), nullable=False, unique=True)
+    short_name: Mapped[str] = mapped_column(String(50), nullable=True)
+    description: Mapped[str] = mapped_column(Text, nullable=True)
     
-    description: Mapped[Optional[str]] = mapped_column(
-        Text,
-        nullable=True,
-        comment="Area description"
-    )
+    # Classification
+    category: Mapped[str] = mapped_column(String(50), nullable=False, default="production")
+    specialization: Mapped[str] = mapped_column(String(100), nullable=True)
     
-    is_active: Mapped[str] = mapped_column(
-        String(1),
-        nullable=False,
-        default="Y",
-        comment="Active status"
-    )
+    # Visual identity
+    color: Mapped[str] = mapped_column(String(20), nullable=True)
+    icon: Mapped[str] = mapped_column(String(50), nullable=True)
     
-    sort_order: Mapped[int] = mapped_column(
-        Integer,
-        nullable=False,
-        default=100,
-        comment="Display order"
-    )
+    # Status and configuration
+    is_active: Mapped[bool] = mapped_column(nullable=False, default=True)
+    sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=100)
     
-    # relationship with internal users
+    # Capabilities
+    can_lead_projects: Mapped[bool] = mapped_column(nullable=False, default=True)
+    requires_collaboration: Mapped[bool] = mapped_column(nullable=False, default=False)
+    
+    # Capacity management
+    max_concurrent_projects: Mapped[int] = mapped_column(Integer, nullable=True)
+    estimated_capacity_hours: Mapped[int] = mapped_column(Integer, nullable=True)
+    
+    # Statistics (updated by services)
+    total_members: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    active_projects: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    completed_projects: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    
+    # Contact information
+    contact_email: Mapped[str] = mapped_column(String(150), nullable=True)
+    contact_phone: Mapped[str] = mapped_column(String(50), nullable=True)
+    location: Mapped[str] = mapped_column(String(200), nullable=True)
+    
+    # Relationships
     user_areas = relationship(
         "UserArea",
         back_populates="area",
         cascade="all, delete-orphan"
     )
     
-    # Simple indexes
+    # Critical indexes only
     __table_args__ = (
         Index("idx_area_name", "name"),
         Index("idx_area_active", "is_active"),
+        Index("idx_area_category", "category"),
+        Index("idx_area_can_lead", "can_lead_projects"),
     )
     
     def __repr__(self) -> str:
