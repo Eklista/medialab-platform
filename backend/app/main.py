@@ -1,6 +1,6 @@
 """
 Universidad Galileo MediaLab Platform - Main Application
-FastAPI application setup - Con registro elegante de modelos
+FastAPI application setup
 """
 import logging
 from contextlib import asynccontextmanager
@@ -169,9 +169,10 @@ def setup_routes(app: FastAPI) -> None:
     
     # API routes
     from app.modules.users.router import router as users_router
+    from app.modules.security.router import router as security_router
     
     app.include_router(users_router, prefix=settings.API_V1_PREFIX, tags=["Users"])
-    
+    app.include_router(security_router, prefix=settings.API_V1_PREFIX, tags=["Security"])
     # Root endpoint
     @app.get("/", tags=["System"])
     async def root():
