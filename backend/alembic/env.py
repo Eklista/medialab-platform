@@ -22,6 +22,7 @@ from app.modules.users.models import (
     BaseUser, InternalUser, InstitutionalUser, 
     UserRole, UserArea, UserAcademicUnit
 )
+from app.modules.cms.models import Category, Video, Gallery
 
 # Import database configuration
 from app.core.config import get_settings

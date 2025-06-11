@@ -1,0 +1,182 @@
+# ===================================
+# UNIVERSIDAD GALILEO - MEDIALAB PLATFORM
+# COMANDOS ÚTILES DE DOCKER
+# ===================================
+
+# ===================================
+# COMANDOS BÁSICOS DE DESARROLLO
+# ===================================
+
+# Levantar entorno completo de desarrollo
+docker-compose --profile dev up -d
+
+# Levantar con logs en tiempo real
+docker-compose --profile dev up
+
+# Levantar solo servicios específicos
+docker-compose --profile dev up backend redis -d
+docker-compose --profile dev up frontend -d
+
+# Detener todos los servicios
+docker-compose down
+
+# Detener y remover volúmenes
+docker-compose down -v
+
+# ===================================
+# COMANDOS DE PRODUCCIÓN
+# ===================================
+
+# Levantar entorno de producción
+docker-compose --profile prod up -d
+
+# Rebuild y levantar producción
+docker-compose --profile prod up --build -d
+
+# ===================================
+# LOGS Y MONITOREO
+# ===================================
+
+# Ver logs de todos los servicios
+docker-compose logs -f
+
+# Ver logs de un servicio específico
+docker-compose logs -f backend
+docker-compose logs -f frontend
+docker-compose logs -f redis
+docker-compose logs -f nginx
+
+# Ver logs de las últimas 100 líneas
+docker-compose logs --tail=100 backend
+
+# ===================================
+# REBUILD Y ACTUALIZACIONES
+# ===================================
+
+# Rebuild un servicio específico
+docker-compose build backend
+docker-compose build frontend
+
+# Rebuild sin caché
+docker-compose build --no-cache backend
+
+# Rebuild y reiniciar
+docker-compose up --build backend -d
+
+# ===================================
+# GESTIÓN DE CONTENEDORES
+# ===================================
+
+# Reiniciar un servicio
+docker-compose restart backend
+docker-compose restart frontend
+
+# Entrar a un contenedor (debug)
+docker-compose exec backend bash
+docker-compose exec frontend sh
+docker-compose exec redis redis-cli
+
+# Ver estado de servicios
+docker-compose ps
+
+# Ver recursos utilizados
+docker stats
+
+# ===================================
+# LIMPIEZA Y MANTENIMIENTO
+# ===================================
+
+# Remover contenedores detenidos
+docker container prune
+
+# Remover imágenes no utilizadas
+docker image prune
+
+# Remover volúmenes no utilizados
+docker volume prune
+
+# Limpieza completa (CUIDADO!)
+docker system prune -a
+
+# Remover solo imágenes de medialab
+docker images | grep medialab | awk '{print $3}' | xargs docker rmi
+
+# ===================================
+# COMANDOS ESPECÍFICOS DEL PROYECTO
+# ===================================
+
+# Conectar a Redis CLI
+docker-compose exec redis redis-cli -a medialab2025
+
+# Ver logs de errores del backend
+docker-compose logs backend | grep ERROR
+
+# Backup de Redis (si necesario)
+docker-compose exec redis redis-cli -a medialab2025 --rdb /data/backup.rdb
+
+# Reiniciar solo la base de datos cache
+docker-compose restart redis
+
+# ===================================
+# VARIABLES DE ENTORNO
+# ===================================
+
+# Cambiar a modo producción
+export DOCKER_TARGET=production
+export ENVIRONMENT=production
+docker-compose --profile prod up -d
+
+# Cambiar a modo desarrollo  
+export DOCKER_TARGET=development
+export ENVIRONMENT=development
+docker-compose --profile dev up -d
+
+# ===================================
+# TROUBLESHOOTING
+# ===================================
+
+# Ver puertos ocupados
+docker-compose ps
+netstat -tulpn | grep :8547
+netstat -tulpn | grep :3247
+
+# Verificar conectividad entre servicios
+docker-compose exec backend ping redis
+docker-compose exec frontend ping backend
+
+# Ver variables de entorno en contenedor
+docker-compose exec backend env
+docker-compose exec frontend env
+
+# Verificar archivos montados
+docker-compose exec backend ls -la /app
+docker-compose exec backend ls -la /app/uploads
+
+# ===================================
+# COMANDOS DE DESARROLLO RÁPIDO
+# ===================================
+
+# Setup inicial completo
+cp .env.example .env
+docker-compose --profile dev build
+docker-compose --profile dev up -d
+
+# Reinicio rápido después de cambios
+docker-compose restart backend frontend
+
+# Ver últimos logs con timestamp
+docker-compose logs -f -t backend
+
+# ===================================
+# ACCESOS RÁPIDOS
+# ===================================
+
+# URLs de desarrollo:
+# Frontend: http://localhost:3247
+# Backend API: http://localhost:8547
+# Backend Docs: http://localhost:8547/docs
+# Redis: localhost:6479
+
+# URLs de producción:
+# Aplicación: http://localhost:8080
+# HTTPS: https://localhost:8443

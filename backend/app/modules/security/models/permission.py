@@ -3,6 +3,7 @@ Permission model for role-based access control
 """
 from sqlalchemy import String, Text, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from typing import Optional
 
 from app.shared.base.base_model import BaseModelWithID
 
@@ -28,7 +29,7 @@ class Permission(BaseModelWithID):
         comment="Unique permission name (snake_case)"
     )
     
-    display_name = Column(
+    display_name: Mapped[str] = mapped_column(
         String(150),
         nullable=False,
         comment="Human-readable permission name"

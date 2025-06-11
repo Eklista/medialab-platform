@@ -1,7 +1,7 @@
 """
 AcademicUnit model - Simple version for university faculties
 """
-from sqlalchemy import String, Text, Integer, Index
+from sqlalchemy import String, Text, Integer, ForeignKey, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import Optional
 
@@ -41,6 +41,14 @@ class AcademicUnit(BaseModelWithID):
         comment="Faculty description"
     )
     
+    # Type relationship - FIXED
+    type_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("academic_unit_types.id", ondelete="RESTRICT"),
+        nullable=False,
+        comment="Foreign key to academic unit types"
+    )
+    
     is_active: Mapped[str] = mapped_column(
         String(1),
         nullable=False,
@@ -62,10 +70,17 @@ class AcademicUnit(BaseModelWithID):
         cascade="all, delete-orphan"
     )
     
+    categories = relationship(
+        "Category",
+        back_populates="academic_unit",
+        cascade="all, delete-orphan"
+    )
+    
     # Simple indexes
     __table_args__ = (
         Index("idx_academic_unit_name", "name"),
         Index("idx_academic_unit_abbreviation", "abbreviation"),
+        Index("idx_academic_unit_type", "type_id"),
         Index("idx_academic_unit_active", "is_active"),
     )
     

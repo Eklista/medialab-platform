@@ -1,5 +1,5 @@
 """
-Internal User model for MediaLab staff
+Internal User model for MediaLab staff - SIMPLIFIED
 """
 from typing import Optional
 from datetime import datetime
@@ -11,7 +11,8 @@ from .base_user import BaseUser
 
 class InternalUser(BaseUser):
     """
-    Internal User model for MediaLab staff
+    Internal User model for MediaLab staff - SIMPLE VERSION
+    Solo lo esencial para el equipo interno
     """
     
     __tablename__ = "internal_users"
@@ -62,6 +63,19 @@ class InternalUser(BaseUser):
     user_areas = relationship(
         "UserArea",
         back_populates="user",
+        cascade="all, delete-orphan"
+    )
+    
+    # Content authored by this user
+    authored_videos = relationship(
+        "Video",
+        back_populates="author",
+        cascade="all, delete-orphan"
+    )
+    
+    authored_galleries = relationship(
+        "Gallery",
+        back_populates="author", 
         cascade="all, delete-orphan"
     )
     
