@@ -1,5 +1,5 @@
 """
-Gallery model
+Gallery model - Base unificado VERIFICADO
 """
 from datetime import date
 from sqlalchemy import String, Text, Integer, Date, ForeignKey, Index, JSON
@@ -77,7 +77,7 @@ class Gallery(BaseModelWithUUID):
     allow_comments: Mapped[bool] = mapped_column(nullable=False, default=True)
     watermark_enabled: Mapped[bool] = mapped_column(nullable=False, default=False)
     
-    # Relationships
+    # Relationships - USANDO STRINGS
     category = relationship("Category", back_populates="galleries")
     author = relationship("InternalUser", back_populates="authored_galleries")
     

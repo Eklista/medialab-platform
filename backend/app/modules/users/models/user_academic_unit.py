@@ -1,17 +1,11 @@
 """
-UserAcademicUnit model
+UserAcademicUnit model - Base unificado
 """
 from datetime import date
 from sqlalchemy import Integer, String, Date, ForeignKey, Index, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from typing import TYPE_CHECKING
 
 from app.shared.base.base_model import BaseModelWithID
-
-# Import for type hints only
-if TYPE_CHECKING:
-    from .institutional_user import InstitutionalUser
-    from app.modules.organizations.models import AcademicUnit
 
 
 class UserAcademicUnit(BaseModelWithID):
@@ -43,6 +37,7 @@ class UserAcademicUnit(BaseModelWithID):
     office_number: Mapped[str] = mapped_column(String(50), nullable=True)
     internal_phone: Mapped[str] = mapped_column(String(50), nullable=True)
     
+    # Relationships
     user = relationship("InstitutionalUser", back_populates="user_academic_units")
     academic_unit = relationship("AcademicUnit", back_populates="user_academic_units")
     

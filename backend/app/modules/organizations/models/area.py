@@ -1,5 +1,5 @@
 """
-Area model
+Area model - Base unificado
 """
 from sqlalchemy import String, Text, Integer, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -50,11 +50,7 @@ class Area(BaseModelWithID):
     location: Mapped[str] = mapped_column(String(200), nullable=True)
     
     # Relationships
-    user_areas = relationship(
-        "UserArea",
-        back_populates="area",
-        cascade="all, delete-orphan"
-    )
+    user_areas = relationship("UserArea", back_populates="area", cascade="all, delete-orphan")
     
     # Critical indexes only
     __table_args__ = (

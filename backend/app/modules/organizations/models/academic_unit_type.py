@@ -1,5 +1,5 @@
 """
-AcademicUnitType model
+AcademicUnitType model - Base unificado
 """
 from sqlalchemy import String, Text, Integer, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -34,11 +34,7 @@ class AcademicUnitType(BaseModelWithID):
     requires_approval: Mapped[bool] = mapped_column(nullable=False, default=False)
     
     # Relationships
-    academic_units = relationship(
-        "AcademicUnit",
-        back_populates="academic_unit_type",
-        cascade="all, delete-orphan"
-    )
+    academic_units = relationship("AcademicUnit", back_populates="academic_unit_type", cascade="all, delete-orphan")
     
     # Critical indexes only
     __table_args__ = (

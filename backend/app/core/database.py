@@ -1,5 +1,6 @@
 """
 Database connection and session management
+Solo para conexiones - Las tablas se crean con Alembic
 """
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
@@ -18,7 +19,7 @@ engine = create_engine(
     max_overflow=settings.database.MAX_OVERFLOW,
     pool_timeout=settings.database.POOL_TIMEOUT,
     pool_recycle=settings.database.POOL_RECYCLE,
-    pool_pre_ping=True,  # Validate connections before use
+    pool_pre_ping=True,
 )
 
 # Create session factory
@@ -39,25 +40,6 @@ def get_db() -> Generator[Session, None, None]:
         yield db
     finally:
         db.close()
-
-
-def create_tables():
-    """
-    Create all tables (for development/testing)
-    In production, use Alembic migrations
-    """
-    # Import models to register them with SQLAlchemy
-    import app.modules.users.models
-    import app.modules.organizations.models
-    import app.modules.security.models
-    import app.modules.cms.models
-    
-    from app.shared.base.base_model import BaseModelWithID, BaseModelWithUUID, BaseModelHybrid
-    
-    # Create tables for all base models
-    BaseModelWithID.metadata.create_all(bind=engine)
-    BaseModelWithUUID.metadata.create_all(bind=engine)
-    BaseModelHybrid.metadata.create_all(bind=engine)
 
 
 def check_database_connection() -> bool:

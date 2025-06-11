@@ -1,5 +1,5 @@
 """
-Video model
+Video model - Base unificado VERIFICADO
 """
 from datetime import date
 from sqlalchemy import String, Text, Integer, Date, ForeignKey, Index
@@ -73,7 +73,7 @@ class Video(BaseModelWithUUID):
     allow_comments: Mapped[bool] = mapped_column(nullable=False, default=True)
     allow_embedding: Mapped[bool] = mapped_column(nullable=False, default=True)
     
-    # Relationships
+    # Relationships - USANDO STRINGS
     category = relationship("Category", back_populates="videos")
     author = relationship("InternalUser", back_populates="authored_videos")
     

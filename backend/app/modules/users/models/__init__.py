@@ -1,10 +1,12 @@
 """
-Users module models
+Users module models - CORREGIDO con orden apropiado de importación
 """
-from sqlalchemy import CheckConstraint
+
+from .user_role import UserRole
+
 from .internal_user import InternalUser
 from .institutional_user import InstitutionalUser
-from .user_role import UserRole
+
 from .user_area import UserArea
 from .user_academic_unit import UserAcademicUnit
 

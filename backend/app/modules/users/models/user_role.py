@@ -1,14 +1,10 @@
 """
-UserRole model
+UserRole model - CORREGIDO usando strings en relationships
 """
 from sqlalchemy import Integer, String, ForeignKey, Index, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from typing import TYPE_CHECKING
 
 from app.shared.base.base_model import BaseModelWithID
-
-if TYPE_CHECKING:
-    from app.modules.security.models import Role
 
 
 class UserRole(BaseModelWithID):
@@ -28,6 +24,7 @@ class UserRole(BaseModelWithID):
     
     assigned_reason: Mapped[str] = mapped_column(String(500), nullable=True)
     
+    # Relationships - USANDO STRINGS
     role = relationship("Role", back_populates="user_roles")
     
     __table_args__ = (

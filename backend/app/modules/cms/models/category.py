@@ -1,5 +1,5 @@
 """
-Category model
+Category model - CORREGIDO usando strings en relationships
 """
 from sqlalchemy import String, Text, Integer, ForeignKey, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship

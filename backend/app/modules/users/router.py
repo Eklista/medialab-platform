@@ -1,10 +1,11 @@
 """
-Users Router - API endpoints for user management
-All business logic is delegated to controllers
+Users Router - LIMPIO sin imports desordenados
 """
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, Path
 from sqlalchemy.orm import Session
+
+import app.models
 
 from app.core.database import get_db
 from app.modules.users.controllers import (

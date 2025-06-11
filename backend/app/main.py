@@ -1,6 +1,6 @@
 """
 Universidad Galileo MediaLab Platform - Main Application
-FastAPI application setup with modular configuration
+FastAPI application setup - Con registro elegante de modelos
 """
 import logging
 from contextlib import asynccontextmanager
@@ -22,6 +22,9 @@ from app.core.config_utils import (
     validate_production_config
 )
 
+# Registra todos los modelos automáticamente
+import app.models
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator:
@@ -38,6 +41,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     
     # Ensure directories exist
     ensure_directories()
+    
+    # Log model registration info
+    if settings.is_development:
+        from app.models import get_registry_info
+        registry_info = get_registry_info()
+        logging.info(f"📊 Models registered: {registry_info['total_tables']} tables")
     
     # Validate production config
     if settings.is_production:
@@ -57,7 +66,6 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     logging.info("✅ Application shutdown completed")
 
 
-# Create FastAPI application
 def create_application() -> FastAPI:
     """
     Create and configure FastAPI application
@@ -152,16 +160,17 @@ def setup_routes(app: FastAPI) -> None:
         async def debug_environment():
             """Get environment information (development only)"""
             return get_environment_info()
+        
+        @app.get("/debug/models", tags=["Debug"])
+        async def debug_models():
+            """Check registered SQLAlchemy models"""
+            from app.models import get_registry_info
+            return get_registry_info()
     
     # API routes
     from app.modules.users.router import router as users_router
     
     app.include_router(users_router, prefix=settings.API_V1_PREFIX, tags=["Users"])
-    
-    # Future routers will be added here:
-    # app.include_router(cms_router, prefix=settings.API_V1_PREFIX)
-    # app.include_router(organizations_router, prefix=settings.API_V1_PREFIX)
-    # app.include_router(auth_router, prefix=settings.API_V1_PREFIX)
     
     # Root endpoint
     @app.get("/", tags=["System"])

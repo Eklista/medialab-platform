@@ -1,16 +1,11 @@
 """
-UserArea model
+UserArea model - Base unificado
 """
 from datetime import date
 from sqlalchemy import Integer, String, Date, ForeignKey, Index, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from typing import TYPE_CHECKING
 
 from app.shared.base.base_model import BaseModelWithID
-
-if TYPE_CHECKING:
-    from .internal_user import InternalUser
-    from app.modules.organizations.models import Area
 
 
 class UserArea(BaseModelWithID):
@@ -37,6 +32,7 @@ class UserArea(BaseModelWithID):
     
     assignment_reason: Mapped[str] = mapped_column(String(500), nullable=True)
     
+    # Relationships
     user = relationship("InternalUser", back_populates="user_areas")
     area = relationship("Area", back_populates="user_areas")
     

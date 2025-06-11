@@ -1,5 +1,5 @@
 """
-Internal User model - Completely independent
+Internal User model - CON relaciones CMS restauradas
 """
 from datetime import datetime
 from sqlalchemy import String, DateTime, Text, Index
@@ -10,7 +10,7 @@ from app.shared.base.base_model import BaseModelHybrid
 
 class InternalUser(BaseModelHybrid):
     """
-    Internal User model for MediaLab staff - Completely independent
+    Internal User model for MediaLab staff
     """
     
     __tablename__ = "internal_users"
@@ -58,8 +58,19 @@ class InternalUser(BaseModelHybrid):
     email_notifications: Mapped[bool] = mapped_column(nullable=False, default=True)
     sms_notifications: Mapped[bool] = mapped_column(nullable=False, default=False)
     
-    # Relationships
-    user_areas = relationship("UserArea", back_populates="user")
+    # Relationships - TODAS RESTAURADAS
+    user_areas = relationship("UserArea", back_populates="user", cascade="all, delete-orphan")
+    
+    # UserRole específico para internal users
+    user_roles = relationship(
+        "UserRole",
+        primaryjoin="and_(InternalUser.id==UserRole.user_id, UserRole.user_type=='internal_user')",
+        foreign_keys="[UserRole.user_id]",
+        cascade="all, delete-orphan",
+        overlaps="user_roles"
+    )
+    
+    # ✅ RELACIONES CMS RESTAURADAS
     authored_videos = relationship("Video", back_populates="author")
     authored_galleries = relationship("Gallery", back_populates="author")
     
@@ -80,5 +91,4 @@ class InternalUser(BaseModelHybrid):
     
     @property
     def full_name(self) -> str:
-        """Get user's full name"""
         return f"{self.first_name} {self.last_name}"

@@ -1,5 +1,5 @@
 """
-Institutional User model - Completely independent
+Institutional User model - Base unificado
 """
 from datetime import datetime
 from sqlalchemy import String, DateTime, Text, Index
@@ -10,7 +10,7 @@ from app.shared.base.base_model import BaseModelHybrid
 
 class InstitutionalUser(BaseModelHybrid):
     """
-    Institutional User model for university faculty, students, and external clients - Completely independent
+    Institutional User model for university faculty, students, and external clients
     """
     
     __tablename__ = "institutional_users"
@@ -71,8 +71,17 @@ class InstitutionalUser(BaseModelHybrid):
     email_notifications: Mapped[bool] = mapped_column(nullable=False, default=True)
     sms_notifications: Mapped[bool] = mapped_column(nullable=False, default=False)
     
-    # Relationships - will add these later when we fix the relationship issues
-    user_academic_units = relationship("UserAcademicUnit", back_populates="user")
+    # Relationships
+    user_academic_units = relationship("UserAcademicUnit", back_populates="user", cascade="all, delete-orphan")
+    
+    # UserRole específico para institutional users
+    user_roles = relationship(
+        "UserRole",
+        primaryjoin="and_(InstitutionalUser.id==UserRole.user_id, UserRole.user_type=='institutional_user')",
+        foreign_keys="[UserRole.user_id]",
+        cascade="all, delete-orphan",
+        overlaps="user_roles"
+    )
     
     # Indexes
     __table_args__ = (
@@ -92,5 +101,4 @@ class InstitutionalUser(BaseModelHybrid):
     
     @property
     def full_name(self) -> str:
-        """Get user's full name"""
         return f"{self.first_name} {self.last_name}"

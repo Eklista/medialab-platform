@@ -1,5 +1,5 @@
 """
-Base models with different ID strategies
+Base models with UNIFIED registry - ARCHIVO COMPLETO
 """
 import uuid
 from datetime import datetime
@@ -7,7 +7,7 @@ from typing import Any, Dict, Optional
 
 from sqlalchemy import Column, DateTime, String, Integer, text
 from sqlalchemy.dialects.mysql import CHAR
-from sqlalchemy.ext.declarative import as_declarative, declared_attr
+from sqlalchemy.ext.declarative import declarative_base, declared_attr
 from sqlalchemy.orm import Session, Mapped, mapped_column
 
 
@@ -16,15 +16,16 @@ def generate_uuid() -> str:
     return str(uuid.uuid4())
 
 
-@as_declarative()
-class BaseModelWithID:
+# UN SOLO BASE PARA TODOS LOS MODELOS - ESTO SOLUCIONA EL PROBLEMA
+Base = declarative_base()
+
+
+class BaseModelWithID(Base):
     """
     Base model class with integer ID for internal use only
     Used for: security, organizations modules
     """
-    
-    # Add this to allow legacy annotations
-    __allow_unmapped__ = True
+    __abstract__ = True
     
     # Primary key as auto-increment integer
     id: Mapped[int] = mapped_column(
@@ -92,15 +93,12 @@ class BaseModelWithID:
         return f"<{self.__class__.__name__}(id={self.id})>"
 
 
-@as_declarative()
-class BaseModelWithUUID:
+class BaseModelWithUUID(Base):
     """
     Base model class with UUID for public exposure
     Used for: videos, galleries, projects, cms modules
     """
-    
-    # Add this to allow legacy annotations
-    __allow_unmapped__ = True
+    __abstract__ = True
     
     # Primary key as UUID
     id: Mapped[str] = mapped_column(
@@ -168,15 +166,12 @@ class BaseModelWithUUID:
         return f"<{self.__class__.__name__}(id={self.id})>"
 
 
-@as_declarative()
-class BaseModelHybrid:
+class BaseModelHybrid(Base):
     """
     Base model class with both ID and UUID
     Used for: users module (internal ID + public UUID)
     """
-    
-    # Add this to allow legacy annotations
-    __allow_unmapped__ = True
+    __abstract__ = True
     
     # Internal primary key
     id: Mapped[int] = mapped_column(
@@ -252,3 +247,6 @@ class BaseModelHybrid:
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__}(id={self.id}, uuid={self.uuid})>"
+
+
+__all__ = ['Base', 'BaseModelWithID', 'BaseModelWithUUID', 'BaseModelHybrid', 'generate_uuid']

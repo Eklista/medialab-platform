@@ -1,5 +1,5 @@
 """
-AcademicUnit model
+AcademicUnit model - CON relaciones Category restauradas
 """
 from sqlalchemy import String, Text, Integer, ForeignKey, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -50,23 +50,10 @@ class AcademicUnit(BaseModelWithID):
     total_faculty: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     total_projects: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     
-    # Relationships
-    academic_unit_type = relationship(
-        "AcademicUnitType",
-        back_populates="academic_units"
-    )
-    
-    user_academic_units = relationship(
-        "UserAcademicUnit",
-        back_populates="academic_unit",
-        cascade="all, delete-orphan"
-    )
-    
-    categories = relationship(
-        "Category",
-        back_populates="academic_unit",
-        cascade="all, delete-orphan"
-    )
+    # Relationships - TODAS RESTAURADAS
+    academic_unit_type = relationship("AcademicUnitType", back_populates="academic_units")
+    user_academic_units = relationship("UserAcademicUnit", back_populates="academic_unit", cascade="all, delete-orphan")
+    categories = relationship("Category", back_populates="academic_unit", cascade="all, delete-orphan")
     
     # Critical indexes only
     __table_args__ = (

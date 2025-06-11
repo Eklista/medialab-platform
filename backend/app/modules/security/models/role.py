@@ -1,5 +1,5 @@
 """
-Role model
+Role model - CORREGIDO usando strings en relationships
 """
 from sqlalchemy import String, Text, Integer, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -37,18 +37,9 @@ class Role(BaseModelWithID):
     # Limits
     max_assignments: Mapped[int] = mapped_column(Integer, nullable=True)
     
-    # Relationships
-    role_permissions = relationship(
-        "RolePermission",
-        back_populates="role",
-        cascade="all, delete-orphan"
-    )
-    
-    user_roles = relationship(
-        "UserRole",
-        back_populates="role",
-        cascade="all, delete-orphan"
-    )
+    # Relationships - USANDO STRINGS
+    role_permissions = relationship("RolePermission", back_populates="role", cascade="all, delete-orphan")
+    user_roles = relationship("UserRole", back_populates="role", cascade="all, delete-orphan")
     
     # Critical indexes only
     __table_args__ = (
