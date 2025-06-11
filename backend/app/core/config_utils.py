@@ -12,19 +12,16 @@ def setup_logging() -> None:
     """Setup application logging based on configuration"""
     settings = get_settings()
     
-    # Create logs directory if it doesn't exist
     if settings.LOG_FILE:
         log_path = Path(settings.LOG_FILE)
         log_path.parent.mkdir(parents=True, exist_ok=True)
     
-    # Configure logging
     logging.basicConfig(
         level=getattr(logging, settings.LOG_LEVEL.upper()),
         format=settings.LOG_FORMAT,
         filename=settings.LOG_FILE if settings.LOG_FILE else None
     )
     
-    # Disable some noisy loggers in development
     if settings.is_development:
         logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
         logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
@@ -34,7 +31,6 @@ def ensure_directories() -> None:
     """Ensure all required directories exist"""
     settings = get_settings()
     
-    # Create upload directories (outside backend)
     upload_base = Path(settings.storage.UPLOAD_DIR)
     for subdir in [
         settings.storage.ORIGINAL_DIR,
@@ -44,11 +40,9 @@ def ensure_directories() -> None:
     ]:
         (upload_base / subdir).mkdir(parents=True, exist_ok=True)
     
-    # Create static directory (inside backend)
     static_base = Path(settings.storage.STATIC_DIR)
     static_base.mkdir(parents=True, exist_ok=True)
     
-    # Create email templates directory (inside backend/static)
     email_templates = Path(settings.email.TEMPLATE_DIR)
     email_templates.mkdir(parents=True, exist_ok=True)
 
@@ -97,7 +91,6 @@ def get_api_config() -> Dict[str, Optional[str]]:
         "openapi_url": settings.OPENAPI_URL,
     }
     
-    # Conditionally add docs URLs based on feature flags
     if settings.features.ENABLE_API_DOCS:
         config["docs_url"] = settings.DOCS_URL
         config["redoc_url"] = settings.REDOC_URL
@@ -144,14 +137,12 @@ def validate_production_config() -> bool:
     
     errors = []
     
-    # Check for default secrets
     if "change-in-production" in settings.security.SECRET_KEY.lower():
         errors.append("SECRET_KEY is using default value")
     
     if "change-in-production" in settings.security.JWT_SECRET_KEY.lower():
         errors.append("JWT_SECRET_KEY is using default value")
     
-    # Check security settings
     if not settings.security.COOKIE_SECURE:
         errors.append("COOKIE_SECURE should be True in production")
     
@@ -169,8 +160,6 @@ def validate_production_config() -> bool:
     
     return True
 
-
-# Environment detection helpers
 def detect_docker_environment() -> bool:
     """Detect if running inside Docker container"""
     return (
@@ -183,7 +172,6 @@ def get_effective_environment() -> str:
     """Get the effective environment considering auto-detection"""
     settings = get_settings()
     
-    # Auto-detect Docker if not explicitly set
     if not settings.IS_DOCKER and detect_docker_environment():
         os.environ["IS_DOCKER"] = "true"
     

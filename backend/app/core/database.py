@@ -8,10 +8,8 @@ from typing import Generator
 
 from app.core.config import get_settings
 
-# Get database settings
 settings = get_settings()
 
-# Create database engine
 engine = create_engine(
     settings.database.URL,
     echo=settings.database.ECHO,
@@ -22,7 +20,6 @@ engine = create_engine(
     pool_pre_ping=True,
 )
 
-# Create session factory
 SessionLocal = sessionmaker(
     autocommit=False,
     autoflush=False,
