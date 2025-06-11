@@ -4,6 +4,7 @@ Alembic environment configuration for Universidad Galileo MediaLab Platform
 import asyncio
 import os
 import sys
+
 from logging.config import fileConfig
 from sqlalchemy import engine_from_config, pool
 from sqlalchemy.ext.asyncio import AsyncEngine
@@ -19,7 +20,7 @@ from app.shared.base.base_model import BaseModelWithID, BaseModelWithUUID, BaseM
 from app.modules.security.models import Permission, Role, RolePermission
 from app.modules.organizations.models import AcademicUnitType, AcademicUnit, Area
 from app.modules.users.models import (
-    BaseUser, InternalUser, InstitutionalUser, 
+    InternalUser, InstitutionalUser, 
     UserRole, UserArea, UserAcademicUnit
 )
 from app.modules.cms.models import Category, Video, Gallery
@@ -38,7 +39,7 @@ if config.config_file_name is not None:
 
 # Get database URL from settings
 settings = get_settings()
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+config.set_main_option("sqlalchemy.url", settings.database.URL)
 
 # add your model's MetaData objects here for 'autogenerate' support
 # We need to combine metadata from all base models
