@@ -35,6 +35,14 @@ from app.modules.cms.models.category import Category
 from app.modules.cms.models.video import Video
 from app.modules.cms.models.gallery import Gallery
 
+# Auth models
+from app.modules.auth.models.auth_session import AuthSession
+from app.modules.auth.models.login_attempt import LoginAttempt
+from app.modules.auth.models.totp_device import TotpDevice
+from app.modules.auth.models.backup_code import BackupCode
+from app.modules.auth.models.oauth_account import OAuthAccount
+from app.modules.auth.models.invitation import Invitation
+
 # Exportar modelos para uso externo
 __all__ = [
     # Base
@@ -63,7 +71,15 @@ __all__ = [
     # CMS
     "Category",
     "Video",
-    "Gallery"
+    "Gallery",
+
+    # Auth
+    "AuthSession",
+    "LoginAttempt", 
+    "TotpDevice",
+    "BackupCode",
+    "OAuthAccount",
+    "Invitation"
 ]
 
 def get_all_models():
