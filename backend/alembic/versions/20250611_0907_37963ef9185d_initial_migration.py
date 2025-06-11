@@ -1,8 +1,9 @@
-"""Initial Migration
+"""initial migration
 
-Revision ID: 949d0aba1e9d
+
+Revision ID: 37963ef9185d
 Revises: 
-Create Date: 2025-06-10 20:54:51.730792-06:00
+Create Date: 2025-06-11 09:07:44.836466-06:00
 
 """
 from alembic import op
@@ -10,7 +11,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import mysql
 
 # revision identifiers, used by Alembic.
-revision = '949d0aba1e9d'
+revision = '37963ef9185d'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -78,16 +79,6 @@ def upgrade() -> None:
         batch_op.create_index('idx_area_name', ['name'], unique=False)
 
     op.create_table('institutional_users',
-    sa.Column('institution', sa.String(length=200), nullable=False),
-    sa.Column('faculty_id', sa.String(length=50), nullable=True),
-    sa.Column('academic_title', sa.String(length=100), nullable=True),
-    sa.Column('position_title', sa.String(length=150), nullable=True),
-    sa.Column('office_phone', sa.String(length=50), nullable=True),
-    sa.Column('office_location', sa.String(length=200), nullable=True),
-    sa.Column('is_faculty', sa.Boolean(), nullable=False),
-    sa.Column('is_student', sa.Boolean(), nullable=False),
-    sa.Column('is_external_client', sa.Boolean(), nullable=False),
-    sa.Column('can_request_projects', sa.Boolean(), nullable=False),
     sa.Column('username', sa.String(length=50), nullable=False),
     sa.Column('email', sa.String(length=150), nullable=False),
     sa.Column('password_hash', sa.String(length=255), nullable=True),
@@ -100,6 +91,17 @@ def upgrade() -> None:
     sa.Column('timezone', sa.String(length=50), nullable=False),
     sa.Column('is_active', sa.Boolean(), nullable=False),
     sa.Column('is_verified', sa.Boolean(), nullable=False),
+    sa.Column('account_locked', sa.Boolean(), nullable=False),
+    sa.Column('institution', sa.String(length=200), nullable=False),
+    sa.Column('faculty_id', sa.String(length=50), nullable=True),
+    sa.Column('academic_title', sa.String(length=100), nullable=True),
+    sa.Column('position_title', sa.String(length=150), nullable=True),
+    sa.Column('office_phone', sa.String(length=50), nullable=True),
+    sa.Column('office_location', sa.String(length=200), nullable=True),
+    sa.Column('is_faculty', sa.Boolean(), nullable=False),
+    sa.Column('is_student', sa.Boolean(), nullable=False),
+    sa.Column('is_external_client', sa.Boolean(), nullable=False),
+    sa.Column('can_request_projects', sa.Boolean(), nullable=False),
     sa.Column('last_login', sa.DateTime(), nullable=True),
     sa.Column('login_count', sa.Integer(), nullable=False),
     sa.Column('failed_login_attempts', sa.Integer(), nullable=False),
@@ -119,17 +121,17 @@ def upgrade() -> None:
     )
     with op.batch_alter_table('institutional_users', schema=None) as batch_op:
         batch_op.create_index('idx_institutional_user_active', ['is_active'], unique=False)
+        batch_op.create_index('idx_institutional_user_active_created', ['is_active', 'created_at'], unique=False)
         batch_op.create_index('idx_institutional_user_email', ['email'], unique=False)
         batch_op.create_index('idx_institutional_user_faculty_id', ['faculty_id'], unique=False)
+        batch_op.create_index('idx_institutional_user_institution', ['institution'], unique=False)
+        batch_op.create_index('idx_institutional_user_search', ['first_name', 'last_name', 'username'], unique=False)
+        batch_op.create_index('idx_institutional_user_types', ['is_faculty', 'is_student', 'is_external_client'], unique=False)
         batch_op.create_index('idx_institutional_user_username', ['username'], unique=False)
+        batch_op.create_index('idx_institutional_user_uuid', ['uuid'], unique=False)
         batch_op.create_index(batch_op.f('ix_institutional_users_uuid'), ['uuid'], unique=True)
 
     op.create_table('internal_users',
-    sa.Column('employee_id', sa.String(length=50), nullable=True),
-    sa.Column('position', sa.String(length=100), nullable=True),
-    sa.Column('banner_photo', sa.String(length=500), nullable=True),
-    sa.Column('last_activity', sa.DateTime(), nullable=True),
-    sa.Column('can_access_dashboard', sa.Boolean(), nullable=False),
     sa.Column('username', sa.String(length=50), nullable=False),
     sa.Column('email', sa.String(length=150), nullable=False),
     sa.Column('password_hash', sa.String(length=255), nullable=True),
@@ -138,11 +140,17 @@ def upgrade() -> None:
     sa.Column('phone', sa.String(length=50), nullable=True),
     sa.Column('profile_photo', sa.String(length=500), nullable=True),
     sa.Column('bio', sa.Text(), nullable=True),
+    sa.Column('banner_photo', sa.String(length=500), nullable=True),
     sa.Column('preferred_language', sa.String(length=10), nullable=False),
     sa.Column('timezone', sa.String(length=50), nullable=False),
     sa.Column('is_active', sa.Boolean(), nullable=False),
     sa.Column('is_verified', sa.Boolean(), nullable=False),
+    sa.Column('account_locked', sa.Boolean(), nullable=False),
+    sa.Column('employee_id', sa.String(length=50), nullable=True),
+    sa.Column('position', sa.String(length=100), nullable=True),
+    sa.Column('can_access_dashboard', sa.Boolean(), nullable=False),
     sa.Column('last_login', sa.DateTime(), nullable=True),
+    sa.Column('last_activity', sa.DateTime(), nullable=True),
     sa.Column('login_count', sa.Integer(), nullable=False),
     sa.Column('failed_login_attempts', sa.Integer(), nullable=False),
     sa.Column('locked_until', sa.DateTime(), nullable=True),
@@ -162,9 +170,13 @@ def upgrade() -> None:
     )
     with op.batch_alter_table('internal_users', schema=None) as batch_op:
         batch_op.create_index('idx_internal_user_active', ['is_active'], unique=False)
+        batch_op.create_index('idx_internal_user_active_created', ['is_active', 'created_at'], unique=False)
+        batch_op.create_index('idx_internal_user_dashboard_access', ['can_access_dashboard'], unique=False)
         batch_op.create_index('idx_internal_user_email', ['email'], unique=False)
         batch_op.create_index('idx_internal_user_employee_id', ['employee_id'], unique=False)
+        batch_op.create_index('idx_internal_user_search', ['first_name', 'last_name', 'username'], unique=False)
         batch_op.create_index('idx_internal_user_username', ['username'], unique=False)
+        batch_op.create_index('idx_internal_user_uuid', ['uuid'], unique=False)
         batch_op.create_index(batch_op.f('ix_internal_users_uuid'), ['uuid'], unique=True)
 
     op.create_table('permissions',
@@ -303,7 +315,11 @@ def upgrade() -> None:
     with op.batch_alter_table('user_areas', schema=None) as batch_op:
         batch_op.create_index('idx_user_area_active', ['is_active'], unique=False)
         batch_op.create_index('idx_user_area_area', ['area_id'], unique=False)
+        batch_op.create_index('idx_user_area_area_active', ['area_id', 'is_active'], unique=False)
+        batch_op.create_index('idx_user_area_can_lead', ['user_id', 'can_lead_projects'], unique=False)
+        batch_op.create_index('idx_user_area_primary', ['user_id', 'is_primary'], unique=False)
         batch_op.create_index('idx_user_area_user', ['user_id'], unique=False)
+        batch_op.create_index('idx_user_area_user_active', ['user_id', 'is_active'], unique=False)
 
     op.create_table('user_roles',
     sa.Column('user_id', sa.Integer(), nullable=False),
@@ -325,6 +341,8 @@ def upgrade() -> None:
         batch_op.create_index('idx_user_role_active', ['is_active'], unique=False)
         batch_op.create_index('idx_user_role_role', ['role_id'], unique=False)
         batch_op.create_index('idx_user_role_user', ['user_id'], unique=False)
+        batch_op.create_index('idx_user_role_user_type', ['user_id', 'user_type'], unique=False)
+        batch_op.create_index('idx_user_role_user_type_active', ['user_id', 'user_type', 'is_active'], unique=False)
 
     op.create_table('categories',
     sa.Column('name', sa.String(length=100), nullable=False),
@@ -390,8 +408,14 @@ def upgrade() -> None:
     )
     with op.batch_alter_table('user_academic_units', schema=None) as batch_op:
         batch_op.create_index('idx_user_academic_unit_active', ['is_active'], unique=False)
+        batch_op.create_index('idx_user_academic_unit_budget', ['user_id', 'has_budget_authority'], unique=False)
+        batch_op.create_index('idx_user_academic_unit_primary', ['user_id', 'is_primary'], unique=False)
+        batch_op.create_index('idx_user_academic_unit_relationship', ['relationship_type'], unique=False)
+        batch_op.create_index('idx_user_academic_unit_represent', ['user_id', 'can_represent_unit'], unique=False)
         batch_op.create_index('idx_user_academic_unit_unit', ['academic_unit_id'], unique=False)
+        batch_op.create_index('idx_user_academic_unit_unit_active', ['academic_unit_id', 'is_active'], unique=False)
         batch_op.create_index('idx_user_academic_unit_user', ['user_id'], unique=False)
+        batch_op.create_index('idx_user_academic_unit_user_active', ['user_id', 'is_active'], unique=False)
 
     op.create_table('galleries',
     sa.Column('title', sa.String(length=200), nullable=False),
@@ -522,8 +546,14 @@ def downgrade() -> None:
 
     op.drop_table('galleries')
     with op.batch_alter_table('user_academic_units', schema=None) as batch_op:
+        batch_op.drop_index('idx_user_academic_unit_user_active')
         batch_op.drop_index('idx_user_academic_unit_user')
+        batch_op.drop_index('idx_user_academic_unit_unit_active')
         batch_op.drop_index('idx_user_academic_unit_unit')
+        batch_op.drop_index('idx_user_academic_unit_represent')
+        batch_op.drop_index('idx_user_academic_unit_relationship')
+        batch_op.drop_index('idx_user_academic_unit_primary')
+        batch_op.drop_index('idx_user_academic_unit_budget')
         batch_op.drop_index('idx_user_academic_unit_active')
 
     op.drop_table('user_academic_units')
@@ -536,13 +566,19 @@ def downgrade() -> None:
 
     op.drop_table('categories')
     with op.batch_alter_table('user_roles', schema=None) as batch_op:
+        batch_op.drop_index('idx_user_role_user_type_active')
+        batch_op.drop_index('idx_user_role_user_type')
         batch_op.drop_index('idx_user_role_user')
         batch_op.drop_index('idx_user_role_role')
         batch_op.drop_index('idx_user_role_active')
 
     op.drop_table('user_roles')
     with op.batch_alter_table('user_areas', schema=None) as batch_op:
+        batch_op.drop_index('idx_user_area_user_active')
         batch_op.drop_index('idx_user_area_user')
+        batch_op.drop_index('idx_user_area_primary')
+        batch_op.drop_index('idx_user_area_can_lead')
+        batch_op.drop_index('idx_user_area_area_active')
         batch_op.drop_index('idx_user_area_area')
         batch_op.drop_index('idx_user_area_active')
 
@@ -575,17 +611,26 @@ def downgrade() -> None:
     op.drop_table('permissions')
     with op.batch_alter_table('internal_users', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_internal_users_uuid'))
+        batch_op.drop_index('idx_internal_user_uuid')
         batch_op.drop_index('idx_internal_user_username')
+        batch_op.drop_index('idx_internal_user_search')
         batch_op.drop_index('idx_internal_user_employee_id')
         batch_op.drop_index('idx_internal_user_email')
+        batch_op.drop_index('idx_internal_user_dashboard_access')
+        batch_op.drop_index('idx_internal_user_active_created')
         batch_op.drop_index('idx_internal_user_active')
 
     op.drop_table('internal_users')
     with op.batch_alter_table('institutional_users', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_institutional_users_uuid'))
+        batch_op.drop_index('idx_institutional_user_uuid')
         batch_op.drop_index('idx_institutional_user_username')
+        batch_op.drop_index('idx_institutional_user_types')
+        batch_op.drop_index('idx_institutional_user_search')
+        batch_op.drop_index('idx_institutional_user_institution')
         batch_op.drop_index('idx_institutional_user_faculty_id')
         batch_op.drop_index('idx_institutional_user_email')
+        batch_op.drop_index('idx_institutional_user_active_created')
         batch_op.drop_index('idx_institutional_user_active')
 
     op.drop_table('institutional_users')

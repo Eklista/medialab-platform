@@ -23,7 +23,6 @@ class DatabaseSettings(BaseSettings):
 
     class Config:
         env_prefix = "DB_"
-        extra = "allow"
 
 
 class RedisSettings(BaseSettings):
@@ -35,7 +34,6 @@ class RedisSettings(BaseSettings):
 
     class Config:
         env_prefix = "REDIS_"
-        extra = "allow"
 
 
 class SecuritySettings(BaseSettings):
@@ -69,7 +67,6 @@ class SecuritySettings(BaseSettings):
 
     class Config:
         env_prefix = "SECURITY_"
-        extra = "allow"
 
 
 class StorageSettings(BaseSettings):
@@ -105,7 +102,6 @@ class StorageSettings(BaseSettings):
 
     class Config:
         env_prefix = "STORAGE_"
-        extra = "allow"
 
 
 class EmailSettings(BaseSettings):
@@ -119,7 +115,6 @@ class EmailSettings(BaseSettings):
 
     class Config:
         env_prefix = "EMAIL_"
-        extra = "allow"
 
 
 class ExternalServicesSettings(BaseSettings):
@@ -135,7 +130,6 @@ class ExternalServicesSettings(BaseSettings):
 
     class Config:
         env_prefix = "EXTERNAL_"
-        extra = "allow"
 
 
 class FeatureFlagsSettings(BaseSettings):
@@ -150,7 +144,6 @@ class FeatureFlagsSettings(BaseSettings):
 
     class Config:
         env_prefix = "FEATURE_"
-        extra = "allow"
 
 
 class Settings(BaseSettings):
@@ -175,6 +168,67 @@ class Settings(BaseSettings):
         description="Frontend application URL"
     )
     
+    # Configuración de base de datos como variables directas
+    DB_URL: str = Field(description="Database connection URL")
+    DB_ECHO: bool = Field(default=False, description="Enable SQLAlchemy query logging")
+    DB_POOL_SIZE: int = Field(default=20, description="Database connection pool size")
+    DB_MAX_OVERFLOW: int = Field(default=30, description="Database connection pool overflow")
+    DB_POOL_TIMEOUT: int = Field(default=30, description="Pool connection timeout")
+    DB_POOL_RECYCLE: int = Field(default=3600, description="Pool connection recycle time")
+    
+    # Configuración de Redis como variables directas  
+    REDIS_URL: str = Field(description="Redis connection URL")
+    REDIS_KEY_PREFIX: str = Field(default="medialab:", description="Redis key prefix")
+    REDIS_TTL: int = Field(default=3600, description="Default Redis TTL in seconds")
+    REDIS_MAX_CONNECTIONS: int = Field(default=50, description="Redis connection pool size")
+    
+    # Configuración de seguridad como variables directas
+    SECURITY_SECRET_KEY: str = Field(description="Main application secret key")
+    SECURITY_JWT_SECRET_KEY: str = Field(description="JWT token secret key")
+    SECURITY_JWT_ALGORITHM: str = Field(default="HS256", description="JWT algorithm")
+    SECURITY_JWT_EXPIRE_MINUTES: int = Field(default=30, description="JWT token expiration")
+    SECURITY_JWT_REFRESH_EXPIRE_DAYS: int = Field(default=7, description="JWT refresh token expiration")
+    SECURITY_JWE_SECRET_KEY: str = Field(description="JWE encryption key for cookies (must be 32+ chars)")
+    SECURITY_JWE_ALGORITHM: str = Field(default="A256GCM", description="JWE encryption algorithm")
+    SECURITY_COOKIE_SECURE: bool = Field(default=False, description="Use secure cookies (HTTPS only)")
+    SECURITY_COOKIE_SAMESITE: str = Field(default="lax", description="Cookie SameSite policy")
+    SECURITY_COOKIE_HTTPONLY: bool = Field(default=True, description="HTTP only cookies")
+    SECURITY_COOKIE_MAX_AGE: int = Field(default=1800, description="Cookie max age in seconds")
+    SECURITY_BCRYPT_ROUNDS: int = Field(default=12, description="Bcrypt hashing rounds")
+    SECURITY_RATE_LIMIT_ENABLED: bool = Field(default=True, description="Enable rate limiting")
+    SECURITY_RATE_LIMIT_REQUESTS: int = Field(default=100, description="Requests per minute")
+    SECURITY_RATE_LIMIT_WINDOW: int = Field(default=60, description="Rate limit window in seconds")
+    
+    # Configuración de almacenamiento como variables directas
+    STORAGE_UPLOAD_DIR: str = Field(default="../uploads", description="Main upload directory (outside backend)")
+    STORAGE_STATIC_DIR: str = Field(default="./static", description="Static files directory (inside backend)")
+    STORAGE_ORIGINAL_DIR: str = Field(default="original", description="Original files subdirectory")
+    STORAGE_PROCESSED_DIR: str = Field(default="processed", description="Processed files subdirectory")
+    STORAGE_THUMBNAILS_DIR: str = Field(default="thumbnails", description="Thumbnails subdirectory")
+    STORAGE_TEMP_DIR: str = Field(default="temp", description="Temporary files subdirectory")
+    STORAGE_MAX_UPLOAD_SIZE: int = Field(default=100 * 1024 * 1024, description="Max upload size (100MB)")
+    STORAGE_MAX_IMAGE_SIZE: int = Field(default=20 * 1024 * 1024, description="Max image size (20MB)")
+    STORAGE_MAX_VIDEO_SIZE: int = Field(default=500 * 1024 * 1024, description="Max video size (500MB)")
+    STORAGE_IMAGE_QUALITY: int = Field(default=85, description="Image compression quality")
+    STORAGE_WATERMARK_ENABLED: bool = Field(default=False, description="Enable watermarking")
+    
+    # Configuración de email como variables directas
+    EMAIL_FALLBACK_SMTP_HOST: str = Field(default="smtp.gmail.com")
+    EMAIL_FALLBACK_SMTP_PORT: int = Field(default=587)
+    EMAIL_FALLBACK_SMTP_TLS: bool = Field(default=True)
+    EMAIL_FALLBACK_FROM_EMAIL: str = Field(default="noreply@medialab.edu.gt")
+    EMAIL_TEMPLATE_DIR: str = Field(default="./static/email_templates", description="Email template directory")
+    
+    # Feature flags como variables directas
+    FEATURE_ENABLE_REGISTRATION: bool = Field(default=False, description="Enable user registration")
+    FEATURE_ENABLE_EMAIL_VERIFICATION: bool = Field(default=True, description="Enable email verification")
+    FEATURE_ENABLE_PASSWORD_RESET: bool = Field(default=True, description="Enable password reset")
+    FEATURE_ENABLE_MAINTENANCE_MODE: bool = Field(default=False, description="Enable maintenance mode")
+    FEATURE_ENABLE_API_DOCS: bool = Field(default=True, description="Enable API documentation")
+    FEATURE_ENABLE_CORS: bool = Field(default=True, description="Enable CORS")
+    FEATURE_ENABLE_RATE_LIMITING: bool = Field(default=True, description="Enable rate limiting")
+    
+    # Configuración adicional
     API_V1_PREFIX: str = Field(default="/api/v1")
     DOCS_URL: Optional[str] = Field(default="/docs")
     REDOC_URL: Optional[str] = Field(default="/redoc")
@@ -198,48 +252,46 @@ class Settings(BaseSettings):
     LOG_MAX_SIZE: str = Field(default="10MB", description="Max log file size")
     LOG_BACKUP_COUNT: int = Field(default=5, description="Number of backup log files")
     
-    database: DatabaseSettings = Field(default_factory=DatabaseSettings)
-    redis: RedisSettings = Field(default_factory=RedisSettings)
-    security: SecuritySettings = Field(default_factory=SecuritySettings)
-    storage: StorageSettings = Field(default_factory=StorageSettings)
-    email: EmailSettings = Field(default_factory=EmailSettings)
-    external: ExternalServicesSettings = Field(default_factory=ExternalServicesSettings)
-    features: FeatureFlagsSettings = Field(default_factory=FeatureFlagsSettings)
+    @validator('SECURITY_JWE_SECRET_KEY')
+    def validate_jwe_key_length(cls, v):
+        if len(v) < 32:
+            raise ValueError('JWE_SECRET_KEY must be at least 32 characters long')
+        return v
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._apply_environment_overrides()
         if self.ENVIRONMENT == "development":
-            print(f"[DEBUG] DB URL: {self.database.URL}")
-            print(f"[DEBUG] Redis URL: {self.redis.URL}")
-            print(f"[DEBUG] Secret Key: {self.security.SECRET_KEY[:20]}...")
+            print(f"[DEBUG] DB URL: {self.DB_URL}")
+            print(f"[DEBUG] Redis URL: {self.REDIS_URL}")
+            print(f"[DEBUG] Secret Key: {self.SECURITY_SECRET_KEY[:20]}...")
         self._validate_environment_config()
     
     def _apply_environment_overrides(self):
         """Apply environment-specific configuration overrides"""
         if self.ENVIRONMENT == "production":
             self.DEBUG = False
-            self.features.ENABLE_API_DOCS = False
-            self.security.COOKIE_SECURE = True
-            self.security.COOKIE_SAMESITE = "strict"
+            self.FEATURE_ENABLE_API_DOCS = False
+            self.SECURITY_COOKIE_SECURE = True
+            self.SECURITY_COOKIE_SAMESITE = "strict"
             
         elif self.ENVIRONMENT == "staging":
             self.DEBUG = False
-            self.features.ENABLE_API_DOCS = True
+            self.FEATURE_ENABLE_API_DOCS = True
             
         elif self.ENVIRONMENT == "testing":
-            self.database.ECHO = False
-            self.features.ENABLE_EMAIL_VERIFICATION = False
+            self.DB_ECHO = False
+            self.FEATURE_ENABLE_EMAIL_VERIFICATION = False
     
     def _validate_environment_config(self):
         """Validate configuration based on environment"""
         if self.ENVIRONMENT == "production":
             required_vars = [
-                ("DB_URL", self.database.URL),
-                ("REDIS_URL", self.redis.URL),
-                ("SECURITY_SECRET_KEY", self.security.SECRET_KEY),
-                ("SECURITY_JWT_SECRET_KEY", self.security.JWT_SECRET_KEY),
-                ("SECURITY_JWE_SECRET_KEY", self.security.JWE_SECRET_KEY),
+                ("DB_URL", self.DB_URL),
+                ("REDIS_URL", self.REDIS_URL),
+                ("SECURITY_SECRET_KEY", self.SECURITY_SECRET_KEY),
+                ("SECURITY_JWT_SECRET_KEY", self.SECURITY_JWT_SECRET_KEY),
+                ("SECURITY_JWE_SECRET_KEY", self.SECURITY_JWE_SECRET_KEY),
             ]
             
             missing_vars = []
@@ -249,6 +301,107 @@ class Settings(BaseSettings):
             
             if missing_vars:
                 raise ValueError(f"Missing required environment variables: {', '.join(missing_vars)}")
+    
+    # Properties para compatibilidad con el código existente
+    @property
+    def database(self):
+        """Compatibility property for database settings"""
+        return type('DatabaseSettings', (), {
+            'URL': self.DB_URL,
+            'ECHO': self.DB_ECHO,
+            'POOL_SIZE': self.DB_POOL_SIZE,
+            'MAX_OVERFLOW': self.DB_MAX_OVERFLOW,
+            'POOL_TIMEOUT': self.DB_POOL_TIMEOUT,
+            'POOL_RECYCLE': self.DB_POOL_RECYCLE,
+        })()
+    
+    @property
+    def redis(self):
+        """Compatibility property for redis settings"""
+        return type('RedisSettings', (), {
+            'URL': self.REDIS_URL,
+            'KEY_PREFIX': self.REDIS_KEY_PREFIX,
+            'TTL': self.REDIS_TTL,
+            'MAX_CONNECTIONS': self.REDIS_MAX_CONNECTIONS,
+        })()
+    
+    @property
+    def security(self):
+        """Compatibility property for security settings"""
+        return type('SecuritySettings', (), {
+            'SECRET_KEY': self.SECURITY_SECRET_KEY,
+            'JWT_SECRET_KEY': self.SECURITY_JWT_SECRET_KEY,
+            'JWT_ALGORITHM': self.SECURITY_JWT_ALGORITHM,
+            'JWT_EXPIRE_MINUTES': self.SECURITY_JWT_EXPIRE_MINUTES,
+            'JWT_REFRESH_EXPIRE_DAYS': self.SECURITY_JWT_REFRESH_EXPIRE_DAYS,
+            'JWE_SECRET_KEY': self.SECURITY_JWE_SECRET_KEY,
+            'JWE_ALGORITHM': self.SECURITY_JWE_ALGORITHM,
+            'COOKIE_SECURE': self.SECURITY_COOKIE_SECURE,
+            'COOKIE_SAMESITE': self.SECURITY_COOKIE_SAMESITE,
+            'COOKIE_HTTPONLY': self.SECURITY_COOKIE_HTTPONLY,
+            'COOKIE_MAX_AGE': self.SECURITY_COOKIE_MAX_AGE,
+            'BCRYPT_ROUNDS': self.SECURITY_BCRYPT_ROUNDS,
+            'RATE_LIMIT_ENABLED': self.SECURITY_RATE_LIMIT_ENABLED,
+            'RATE_LIMIT_REQUESTS': self.SECURITY_RATE_LIMIT_REQUESTS,
+            'RATE_LIMIT_WINDOW': self.SECURITY_RATE_LIMIT_WINDOW,
+        })()
+    
+    @property
+    def storage(self):
+        """Compatibility property for storage settings"""
+        return type('StorageSettings', (), {
+            'UPLOAD_DIR': self.STORAGE_UPLOAD_DIR,
+            'STATIC_DIR': self.STORAGE_STATIC_DIR,
+            'ORIGINAL_DIR': self.STORAGE_ORIGINAL_DIR,
+            'PROCESSED_DIR': self.STORAGE_PROCESSED_DIR,
+            'THUMBNAILS_DIR': self.STORAGE_THUMBNAILS_DIR,
+            'TEMP_DIR': self.STORAGE_TEMP_DIR,
+            'MAX_UPLOAD_SIZE': self.STORAGE_MAX_UPLOAD_SIZE,
+            'MAX_IMAGE_SIZE': self.STORAGE_MAX_IMAGE_SIZE,
+            'MAX_VIDEO_SIZE': self.STORAGE_MAX_VIDEO_SIZE,
+            'IMAGE_QUALITY': self.STORAGE_IMAGE_QUALITY,
+            'WATERMARK_ENABLED': self.STORAGE_WATERMARK_ENABLED,
+            'ALLOWED_IMAGE_EXTENSIONS': ["jpg", "jpeg", "png", "webp", "gif", "avif", "heic"],
+            'ALLOWED_VIDEO_EXTENSIONS': ["mp4", "mov", "avi", "mkv", "webm"],
+            'ALLOWED_DOCUMENT_EXTENSIONS': ["pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx"],
+            'THUMBNAIL_SIZE': (300, 300),
+        })()
+    
+    @property
+    def email(self):
+        """Compatibility property for email settings"""
+        return type('EmailSettings', (), {
+            'FALLBACK_SMTP_HOST': self.EMAIL_FALLBACK_SMTP_HOST,
+            'FALLBACK_SMTP_PORT': self.EMAIL_FALLBACK_SMTP_PORT,
+            'FALLBACK_SMTP_TLS': self.EMAIL_FALLBACK_SMTP_TLS,
+            'FALLBACK_FROM_EMAIL': self.EMAIL_FALLBACK_FROM_EMAIL,
+            'TEMPLATE_DIR': self.EMAIL_TEMPLATE_DIR,
+        })()
+    
+    @property
+    def features(self):
+        """Compatibility property for features settings"""
+        return type('FeatureFlagsSettings', (), {
+            'ENABLE_REGISTRATION': self.FEATURE_ENABLE_REGISTRATION,
+            'ENABLE_EMAIL_VERIFICATION': self.FEATURE_ENABLE_EMAIL_VERIFICATION,
+            'ENABLE_PASSWORD_RESET': self.FEATURE_ENABLE_PASSWORD_RESET,
+            'ENABLE_MAINTENANCE_MODE': self.FEATURE_ENABLE_MAINTENANCE_MODE,
+            'ENABLE_API_DOCS': self.FEATURE_ENABLE_API_DOCS,
+            'ENABLE_CORS': self.FEATURE_ENABLE_CORS,
+            'ENABLE_RATE_LIMITING': self.FEATURE_ENABLE_RATE_LIMITING,
+        })()
+    
+    @property
+    def external(self):
+        """Compatibility property for external services settings"""
+        return type('ExternalServicesSettings', (), {
+            'YOUTUBE_API_KEY': None,
+            'AWS_ACCESS_KEY_ID': None,
+            'AWS_SECRET_ACCESS_KEY': None,
+            'AWS_REGION': "us-east-1",
+            'AWS_S3_BUCKET': None,
+            'GOOGLE_ANALYTICS_ID': None,
+        })()
     
     @property
     def is_development(self) -> bool:
@@ -266,16 +419,6 @@ class Settings(BaseSettings):
         env_file = ".env"
         env_file_encoding = "utf-8"
         case_sensitive = True
-        env_nested_delimiter = "_"
-        extra = "allow"
-        
-    def __post_init__(self):
-        """Debug configuration loading"""
-        if self.ENVIRONMENT == "development":
-            print(f"DB URL loaded: {getattr(self.database, 'URL', 'NOT_LOADED')}")
-            print(f"Redis URL loaded: {getattr(self.redis, 'URL', 'NOT_LOADED')}")
-            print(f"Environment vars with DB: {[k for k in os.environ.keys() if 'DB' in k]}")
-            print(f"Environment vars with REDIS: {[k for k in os.environ.keys() if 'REDIS' in k]}")
 
 
 @lru_cache()
