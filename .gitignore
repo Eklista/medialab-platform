@@ -1,0 +1,29 @@
+# General
+__pycache__/
+*.py[cod]
+*.log
+*.sqlite3
+
+# Virtual Envs
+venv/
+backend/venv/
+.env
+*.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Python tools
+*.egg-info/
+.eggs/
+pip-log.txt
+
+# Alembic
+alembic/versions/*.pyc
+alembic/versions/__pycache__/
+
+# Node (si usás frontend)
+node_modules/
+dist/
+build/

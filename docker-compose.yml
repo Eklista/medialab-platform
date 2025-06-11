@@ -1,0 +1,111 @@
+version: '3.8'
+
+services:
+  # ===================================
+  # BACKEND SERVICE
+  # ===================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: ${DOCKER_TARGET:-development}
+    container_name: medialab-backend
+    restart: unless-stopped
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=redis://redis:6379
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=${DEBUG:-true}
+    ports:
+      - "${BACKEND_PORT:-8547}:8000"
+    volumes:
+      - ./backend:/app
+      - ./uploads:/app/uploads
+    depends_on:
+      - redis
+    networks:
+      - medialab-network
+    profiles:
+      - dev
+      - prod
+
+  # ===================================
+  # FRONTEND SERVICE  
+  # ===================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: ${DOCKER_TARGET:-development}
+    container_name: medialab-frontend
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - VITE_API_URL=http://localhost:${BACKEND_PORT:-8547}
+    ports:
+      - "${FRONTEND_PORT:-3247}:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - medialab-network
+    profiles:
+      - dev
+      - prod
+
+  # ===================================
+  # REDIS SERVICE
+  # ===================================
+  redis:
+    image: redis:7.2-alpine
+    container_name: medialab-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-medialab2025}
+    ports:
+      - "${REDIS_PORT:-6479}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - medialab-network
+    profiles:
+      - dev
+      - prod
+
+  # ===================================
+  # NGINX REVERSE PROXY (PROD ONLY)
+  # ===================================
+  nginx:
+    image: nginx:alpine
+    container_name: medialab-nginx
+    restart: unless-stopped
+    ports:
+      - "${NGINX_PORT:-8080}:80"
+      - "${NGINX_SSL_PORT:-8443}:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./uploads:/var/www/uploads:ro
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - medialab-network
+    profiles:
+      - prod
+
+# ===================================
+# VOLUMES
+# ===================================
+volumes:
+  redis_data:
+    driver: local
+
+# ===================================
+# NETWORKS
+# ===================================
+networks:
+  medialab-network:
+    driver: bridge
