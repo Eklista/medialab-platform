@@ -1,6 +1,3 @@
-# ==========================================
-# 2. backend/scripts/seed_data.py
-# ==========================================
 #!/usr/bin/env python3
 """
 MediaLab Platform - Data Seeding Script
@@ -10,6 +7,7 @@ Seeds initial data for available modules.
 Currently supports:
 - Security (permissions and roles)
 - Organizations (areas and academic units)
+- Users (initial admin and institutional users)
 """
 
 import sys
@@ -27,6 +25,7 @@ from app.core.database import SessionLocal
 # Import available seeders
 from app.modules.security.seeds import SecuritySeeder
 from app.modules.organizations.seeds import OrganizationsSeeder
+from app.modules.users.seeds import UsersSeeder
 
 
 class MasterSeeder:
@@ -37,6 +36,7 @@ class MasterSeeder:
         self.available_seeders = {
             'security': SecuritySeeder(db),
             'organizations': OrganizationsSeeder(db),
+            'users': UsersSeeder(db),
         }
     
     def seed_all(self, reset: bool = False, verbose: bool = True):
@@ -45,8 +45,8 @@ class MasterSeeder:
             print("🌱 Starting MediaLab Platform Data Seeding")
             print("=" * 50)
         
-        # Seed in dependency order: security first, then organizations
-        seeding_order = ['security', 'organizations']
+        # Seed in dependency order: security first, then organizations, then users
+        seeding_order = ['security', 'organizations', 'users']
         
         try:
             for module_name in seeding_order:
@@ -111,8 +111,8 @@ class MasterSeeder:
         """Reset all available data (DANGEROUS - use only in development)"""
         print("🔄 Resetting ALL available data...")
         
-        # Reset in reverse dependency order: organizations first, then security
-        reset_order = ['organizations', 'security']
+        # Reset in reverse dependency order: users first, then organizations, then security
+        reset_order = ['users', 'organizations', 'security']
         
         for module_name in reset_order:
             print(f"🗑️  Resetting {module_name}...")
@@ -126,6 +126,7 @@ class MasterSeeder:
         print("📋 Available modules for seeding:")
         print("  - security (permissions, roles)")
         print("  - organizations (areas, academic unit types, academic units)")
+        print("  - users (initial admin and institutional users)")
     
     def get_module_info(self, module_name: str):
         """Get detailed information about a module"""
@@ -139,6 +140,11 @@ class MasterSeeder:
                 'description': 'Organizational structure management',
                 'components': ['Areas (MediaLab)', 'Academic Unit Types', 'Academic Units'],
                 'dependencies': []
+            },
+            'users': {
+                'description': 'Initial users for testing and development',
+                'components': ['Internal Users (MediaLab staff)', 'Institutional Users (faculty, students, external)', 'User-Role assignments', 'User-Organization assignments'],
+                'dependencies': ['security', 'organizations']
             }
         }
         
@@ -173,6 +179,7 @@ Examples:
   python scripts/seed_data.py --reset                # Reset and seed all
   python scripts/seed_data.py --module security      # Seed only security
   python scripts/seed_data.py --module organizations # Seed only organizations
+  python scripts/seed_data.py --module users         # Seed only users
   python scripts/seed_data.py --list                 # List available modules
   python scripts/seed_data.py --info security        # Get module information
   python scripts/seed_data.py --reset-all            # Reset all data only
@@ -181,7 +188,7 @@ Examples:
     
     parser.add_argument(
         '--module', '-m',
-        choices=['security', 'organizations'],
+        choices=['security', 'organizations', 'users'],
         help='Seed specific module only'
     )
     
@@ -205,7 +212,7 @@ Examples:
     
     parser.add_argument(
         '--info', '-i',
-        choices=['security', 'organizations'],
+        choices=['security', 'organizations', 'users'],
         help='Get detailed information about a specific module'
     )
     

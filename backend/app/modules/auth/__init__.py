@@ -21,6 +21,10 @@ CORE COMPONENTS:
 - services/: Business logic for auth operations (hybrid MySQL+Redis)
 - controllers/: Request handling and business logic coordination
 - repositories/: Data access layer for auth data
+- security/: Security services (encryption, tokens, risk analysis)
+- utils/: Utilities (device detection, helpers)
+- exceptions/: Custom exception handling
+- config/: Configuration management
 - router.py: API endpoints for authentication
 
 SECURITY FEATURES:
@@ -30,6 +34,8 @@ SECURITY FEATURES:
 - Location and device change detection
 - Session management across multiple devices
 - Comprehensive audit logging
+- Encrypted session data in Redis
+- JWE tokens for optimized access control
 
 AUTHENTICATION FLOW:
 1. User submits credentials
@@ -44,12 +50,47 @@ This module ensures platform security while maintaining excellent user experienc
 through intelligent risk assessment and seamless authentication flows.
 """
 
-# Import principales para facilitar uso externo
+# Core controllers and services
 from .controllers import auth_controller
 from .services import auth_service, redis_auth_service
 
+# Security services
+from .security import crypto_service, token_service, risk_analyzer
+
+# Utilities
+from .utils import device_detector
+
+# Configuration
+from .config import (
+    security_config, auth_config, session_config,
+    rate_limit_config, risk_analysis_config, two_factor_config
+)
+
+# Router
+from .router import router
+
 __all__ = [
+    # Core services
     "auth_controller",
     "auth_service", 
-    "redis_auth_service"
+    "redis_auth_service",
+    
+    # Security services
+    "crypto_service",
+    "token_service",
+    "risk_analyzer",
+    
+    # Utilities
+    "device_detector",
+    
+    # Configuration
+    "security_config",
+    "auth_config", 
+    "session_config",
+    "rate_limit_config",
+    "risk_analysis_config",
+    "two_factor_config",
+    
+    # Router
+    "router"
 ]

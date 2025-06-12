@@ -87,41 +87,45 @@ class InstitutionalUser(BaseModelHybrid):
         cascade="all, delete-orphan",
         overlaps="user_roles"
     )
-    
-    # ✅ AUTH RELATIONSHIPS AGREGADAS
+      # ✅ AUTH RELATIONSHIPS AGREGADAS
     auth_sessions = relationship(
         "AuthSession",
         primaryjoin="and_(InstitutionalUser.id==AuthSession.user_id, AuthSession.user_type=='institutional_user')",
         foreign_keys="[AuthSession.user_id]",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
+        overlaps="auth_sessions"
     )
     
     login_attempts = relationship(
         "LoginAttempt",
         primaryjoin="and_(InstitutionalUser.id==LoginAttempt.user_id, LoginAttempt.user_type=='institutional_user')",
         foreign_keys="[LoginAttempt.user_id]",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
+        overlaps="login_attempts"
     )
     
     totp_devices = relationship(
         "TotpDevice",
         primaryjoin="and_(InstitutionalUser.id==TotpDevice.user_id, TotpDevice.user_type=='institutional_user')",
         foreign_keys="[TotpDevice.user_id]",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
+        overlaps="totp_devices"
     )
     
     backup_codes = relationship(
         "BackupCode",
         primaryjoin="and_(InstitutionalUser.id==BackupCode.user_id, BackupCode.user_type=='institutional_user')",
         foreign_keys="[BackupCode.user_id]",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
+        overlaps="backup_codes"
     )
     
     oauth_accounts = relationship(
         "OAuthAccount",
         primaryjoin="and_(InstitutionalUser.id==OAuthAccount.user_id, OAuthAccount.user_type=='institutional_user')",
         foreign_keys="[OAuthAccount.user_id]",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
+        overlaps="oauth_accounts"
     )
     
     # Indexes
