@@ -3,4 +3,8 @@
  * Handles: login/logout, tokens, password reset, user registration, guards
  */
 
-export {};
+// modules/auth/index.ts
+export * from './ui';
+export * from './components';
+export * from './pages';
+export * from './hooks';

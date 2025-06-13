@@ -3,4 +3,7 @@
  * Centralizes: axios config, interceptors, endpoints, error handling
  */
 
-export {};
+export { apiClient } from './apiClient';
+export { ENDPOINTS } from './endpoints';
+export * from './types';
+export * from './interceptors';

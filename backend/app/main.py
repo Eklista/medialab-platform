@@ -101,8 +101,13 @@ def setup_middleware(app: FastAPI) -> None:
     
     # CORS Middleware
     if settings.features.ENABLE_CORS:
-        cors_config = get_cors_config()
-        app.add_middleware(CORSMiddleware, **cors_config)
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["http://localhost:3000", "http://localhost:5174"],
+            allow_credentials=True,
+            allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+            allow_headers=["*"],
+        )
         logging.info("✅ CORS middleware enabled")
     
     # Trusted Host Middleware (for production)

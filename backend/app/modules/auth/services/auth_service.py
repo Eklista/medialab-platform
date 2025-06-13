@@ -772,35 +772,22 @@ class AuthService:
         return False
     
     async def _user_has_2fa_devices(self, user: Any, user_type: str, db: Session) -> bool:
-        """Verifica si el usuario tiene dispositivos 2FA activos"""
-        from app.modules.auth.models import TotpDevice
+        """Verifica si el usuario tiene dispositivos 2FA activos"""  # ✅ BIEN INDENTADO
+        from .totp_service import TotpService
         
-        device = db.query(TotpDevice).filter(
-            TotpDevice.user_id == user.id,
-            TotpDevice.user_type == user_type,
-            TotpDevice.is_active == True,
-            TotpDevice.is_verified == True
-        ).first()
+        totp_service = TotpService()
+        devices = totp_service.get_user_2fa_devices(user.id, user_type, db)
         
-        return device is not None
+        return len([d for d in devices if d["is_verified"]]) > 0
     
     async def _validate_totp_code(self, user: Any, user_type: str, code: str, db: Session) -> bool:
-        """Valida código TOTP"""
-        # Verificar que no sea un código ya usado
-        is_used = await redis_auth_service.is_totp_code_used(user.id, user_type, code)
-        if is_used:
-            return False
+        """Valida código TOTP usando el servicio completo"""
+        from .totp_service import TotpService
         
-        # Aquí iría la validación real del código TOTP
-        # Por ahora simulamos con códigos de desarrollo
-        valid_codes = ['123456', '000000']  # Solo para desarrollo
+        totp_service = TotpService()
+        result = totp_service.validate_totp_code(user.id, user_type, code, db)
         
-        if code in valid_codes:
-            # Marcar código como usado
-            await redis_auth_service.store_totp_attempt(user.id, user_type, code)
-            return True
-        
-        return False
+        return result["success"]
 
 
 # Instancia singleton

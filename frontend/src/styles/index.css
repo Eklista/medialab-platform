@@ -1,0 +1,41 @@
+/* src/styles/index.css */
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@layer base {
+  :root {
+    --background: 10 10 10;
+    --foreground: 250 250 250;
+    --primary: 163 230 53;
+    --primary-foreground: 10 10 10;
+    --card: 24 24 27;
+    --card-foreground: 250 250 250;
+    --border: 39 39 42;
+    --input: 24 24 27;
+    --ring: 163 230 53;
+    --destructive: 239 68 68;
+    --destructive-foreground: 248 250 252;
+  }
+
+  body {
+    @apply bg-zinc-950 text-zinc-50;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-zinc-900;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-zinc-700 rounded-md;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-zinc-600;
+  }
+}
