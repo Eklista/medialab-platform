@@ -15,9 +15,9 @@ export const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({
   return (
     <button
       className={cn(
-        "w-full h-11 px-4 border border-zinc-700 rounded-lg bg-zinc-800 text-zinc-50 font-medium",
-        "hover:bg-zinc-700 active:bg-zinc-900 transition-all duration-200",
-        "focus:outline-none focus:ring-2 focus:ring-lime-400 focus:ring-offset-2 focus:ring-offset-zinc-950",
+        "w-full h-11 px-4 border border-slate-300 rounded-lg bg-white text-slate-700 font-medium",
+        "hover:bg-slate-50 active:bg-slate-100 transition-all duration-200 shadow-sm",
+        "focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2 focus:ring-offset-white",
         "disabled:opacity-50 disabled:cursor-not-allowed",
         "flex items-center justify-center gap-3",
         className

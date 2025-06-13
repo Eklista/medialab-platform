@@ -58,14 +58,14 @@ export const TwoFactorCard: React.FC<TwoFactorCardProps> = ({
     <div className="space-y-6">
       {/* Timer */}
       <div className="text-center">
-        <div className={`text-sm font-medium ${timeLeft < 60 ? 'text-red-400' : 'text-orange-400'}`}>
+        <div className={`text-sm font-medium ${timeLeft < 60 ? 'text-red-600' : 'text-amber-600'}`}>
           Tiempo restante: {formatTime(timeLeft)}
         </div>
       </div>
 
       {/* Error Message */}
       {error && (
-        <div className="p-4 rounded-lg bg-red-950/50 border border-red-900 text-red-400 text-sm">
+        <div className="p-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
           {error}
         </div>
       )}
@@ -92,14 +92,14 @@ export const TwoFactorCard: React.FC<TwoFactorCardProps> = ({
 
       {/* Help text */}
       <div className="text-center space-y-2">
-        <p className="text-sm text-zinc-400">
+        <p className="text-sm text-slate-500">
           Ingresa el código de 6 dígitos de tu aplicación autenticadora
         </p>
         
         <button
           type="button"
           onClick={navigateToLogin}
-          className="text-sm text-lime-400 hover:text-lime-300 transition-colors"
+          className="text-sm text-zinc-800 hover:text-zinc-600 transition-colors font-medium"
         >
           Volver al inicio de sesión
         </button>
@@ -109,7 +109,7 @@ export const TwoFactorCard: React.FC<TwoFactorCardProps> = ({
       <div className="text-center">
         <button
           type="button"
-          className="text-xs text-zinc-500 hover:text-zinc-400 transition-colors"
+          className="text-xs text-slate-400 hover:text-slate-500 transition-colors"
         >
           ¿No tienes acceso a tu dispositivo? Usa un código de respaldo
         </button>

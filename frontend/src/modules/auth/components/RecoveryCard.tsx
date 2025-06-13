@@ -46,19 +46,19 @@ export const RecoveryCard: React.FC<RecoveryCardProps> = ({
   if (success) {
     return (
       <div className="space-y-6">
-        <div className="p-6 rounded-lg bg-lime-950/50 border border-lime-900 text-center">
-          <div className="w-16 h-16 bg-lime-400 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-zinc-950" fill="currentColor" viewBox="0 0 20 20">
+        <div className="p-6 rounded-lg bg-green-50 border border-green-200 text-center">
+          <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
             </svg>
           </div>
-          <h3 className="text-lg font-semibold text-lime-400 mb-2">
+          <h3 className="text-lg font-semibold text-green-700 mb-2">
             Correo Enviado
           </h3>
-          <p className="text-sm text-lime-300 mb-4">
+          <p className="text-sm text-green-600 mb-4">
             Hemos enviado un enlace de recuperación a tu correo electrónico.
           </p>
-          <p className="text-xs text-lime-400/80">
+          <p className="text-xs text-green-500">
             Revisa tu bandeja de entrada y spam. El enlace expira en 24 horas.
           </p>
         </div>
@@ -66,7 +66,7 @@ export const RecoveryCard: React.FC<RecoveryCardProps> = ({
         <div className="text-center">
           <button
             onClick={navigateToLogin}
-            className="text-sm text-lime-400 hover:text-lime-300 transition-colors"
+            className="text-sm text-zinc-800 hover:text-zinc-600 transition-colors font-medium"
           >
             Volver al inicio de sesión
           </button>
@@ -78,7 +78,7 @@ export const RecoveryCard: React.FC<RecoveryCardProps> = ({
   return (
     <div className="space-y-6">
       {error && (
-        <div className="p-4 rounded-lg bg-red-950/50 border border-red-900 text-red-400 text-sm">
+        <div className="p-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
           {error}
         </div>
       )}
@@ -102,20 +102,20 @@ export const RecoveryCard: React.FC<RecoveryCardProps> = ({
       </form>
 
       <div className="text-center space-y-4">
-        <p className="text-sm text-zinc-400">
+        <p className="text-sm text-slate-500">
           ¿Recordaste tu contraseña?
         </p>
         
         <button
           onClick={navigateToLogin}
-          className="text-sm text-lime-400 hover:text-lime-300 transition-colors"
+          className="text-sm text-zinc-800 hover:text-zinc-600 transition-colors font-medium"
         >
           Volver al inicio de sesión
         </button>
       </div>
 
       <div className="text-center">
-        <p className="text-xs text-zinc-500">
+        <p className="text-xs text-slate-400">
           ¿Necesitas ayuda? Contacta al administrador del sistema
         </p>
       </div>

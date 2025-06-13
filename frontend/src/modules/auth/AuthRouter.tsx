@@ -1,33 +1,32 @@
 // modules/auth/AuthRouter.tsx
 import React from 'react';
-import { useAuth } from '../../shared/hooks/useAuth';
+import { useAuth } from '../../shared/context/AuthContext';
 import { LoadingScreen } from '../../shared/components/LoadingScreen';
 import { LoginPage } from './pages/LoginPage';
 import { TwoFactorPage } from './pages/TwoFactorPage';
 import { RecoveryPage } from './pages/RecoveryPage';
 import { AuthNavigationProvider, useAuthNavigation } from './context/AuthNavigationContext';
 
-interface AuthRouterProps {
-  onAuthenticated: () => void;
-}
-
-const AuthContent: React.FC<AuthRouterProps> = ({ onAuthenticated }) => {
-  const { isAuthenticated, requires2FA, isLoading } = useAuth();
+const AuthContent: React.FC = () => {
+  const { is_authenticated, requires_2fa, is_loading } = useAuth();
   const { currentRoute, navigateTo2FA } = useAuthNavigation();
 
+  console.log('AuthContent - Render state:', { is_authenticated, requires_2fa, is_loading, currentRoute });
+
   React.useEffect(() => {
-    if (isAuthenticated) {
-      onAuthenticated();
-    } else if (requires2FA) {
+    if (requires_2fa) {
       navigateTo2FA();
     }
-  }, [isAuthenticated, requires2FA, onAuthenticated, navigateTo2FA]);
+  }, [requires_2fa, navigateTo2FA]);
 
-  if (isLoading) {
+  if (is_loading) {
+    console.log('AuthContent - Rendering LoadingScreen');
     return <LoadingScreen />;
   }
 
-  if (isAuthenticated) {
+  // Si ya está autenticado, no renderizar nada (App.tsx manejará el dashboard)
+  if (is_authenticated) {
+    console.log('AuthContent - User authenticated, returning null');
     return null;
   }
 
@@ -44,13 +43,14 @@ const AuthContent: React.FC<AuthRouterProps> = ({ onAuthenticated }) => {
     }
   };
 
+  console.log('AuthContent - Rendering route:', currentRoute);
   return <>{renderRoute()}</>;
 };
 
-export const AuthRouter: React.FC<AuthRouterProps> = ({ onAuthenticated }) => {
+export const AuthRouter: React.FC = () => {
   return (
     <AuthNavigationProvider>
-      <AuthContent onAuthenticated={onAuthenticated} />
+      <AuthContent />
     </AuthNavigationProvider>
   );
 };

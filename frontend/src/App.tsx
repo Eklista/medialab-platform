@@ -1,34 +1,41 @@
 // src/App.tsx
-import { useState } from 'react';
+import React from 'react';
 import { AuthRouter } from './modules/auth/AuthRouter';
 import { DashboardHome } from './modules/dashboardHome/DashboardHome';
-import { useAuth } from './shared/hooks/useAuth';
+import { useAuth } from './shared/context/AuthContext';
+import { LoadingScreen } from './shared/components/LoadingScreen';
 
 function App() {
-  const { user, logout } = useAuth();
-  const [showDashboard, setShowDashboard] = useState(false);
+  const { user, is_authenticated, is_loading, logout } = useAuth();
 
-  const handleAuthenticated = () => {
-    setShowDashboard(true);
-  };
+  console.log('App - Render with auth state:', {
+    isAuthenticated: is_authenticated,
+    isLoading: is_loading,
+    hasUser: !!user
+  });
 
-  const handleLogout = async () => {
-    await logout();
-    setShowDashboard(false);
-  };
+  // Mostrar loading mientras se valida la sesión
+  if (is_loading) {
+    console.log('App - Rendering LoadingScreen');
+    return <LoadingScreen />;
+  }
 
-  if (showDashboard && user) {
+  // Si está autenticado, mostrar dashboard
+  if (is_authenticated && user) {
+    console.log('App - Rendering Dashboard for user:', user.email);
     return (
       <DashboardHome 
         user={user}
-        onLogout={handleLogout}
+        onLogout={logout}
       />
     );
   }
 
+  // Si no está autenticado, mostrar auth
+  console.log('App - Rendering AuthRouter');
   return (
-    <div className="min-h-screen bg-zinc-950">
-      <AuthRouter onAuthenticated={handleAuthenticated} />
+    <div className="min-h-screen bg-slate-50">
+      <AuthRouter />
     </div>
   );
 }

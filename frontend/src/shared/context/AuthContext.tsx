@@ -1,5 +1,5 @@
-// shared/hooks/useAuth.ts
-import { useState, useEffect, useCallback } from 'react';
+// shared/context/AuthContext.tsx
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { authService } from '../services/authService';
 import type { AuthState, AuthUser, LoginRequest } from '../types/auth.types';
 
@@ -13,18 +13,31 @@ const initialState: AuthState = {
   error: null,
 };
 
-export const useAuth = () => {
+interface AuthContextType extends AuthState {
+  login: (credentials: LoginRequest) => Promise<{ success: boolean; requires_2fa?: boolean; error?: string; expires_in?: number }>;
+  verify2FA: (code: string) => Promise<{ success: boolean; error?: string }>;
+  logout: () => Promise<void>;
+  clearError: () => void;
+  isInternalUser: boolean;
+  isInstitutionalUser: boolean;
+  canAccessDashboard: boolean;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, setState] = useState<AuthState>(initialState);
-  const [renderVersion, setRenderVersion] = useState(0); // Forzar re-render
 
   // Initialize auth state
   useEffect(() => {
     const initAuth = async () => {
+      console.log('AuthContext - Initializing auth...');
       const { sessionId, user } = authService.getAuthData();
       
       if (sessionId && user) {
         const isValid = await authService.validateSession(sessionId);
         if (isValid) {
+          console.log('AuthContext - Valid session found, setting authenticated');
           setState(prev => ({
             ...prev,
             user,
@@ -32,21 +45,21 @@ export const useAuth = () => {
             is_authenticated: true,
             is_loading: false,
           }));
-          setRenderVersion(v => v + 1);
           return;
         } else {
           authService.clearAuthData();
         }
       }
       
+      console.log('AuthContext - No valid session, setting not authenticated');
       setState(prev => ({ ...prev, is_loading: false }));
-      setRenderVersion(v => v + 1);
     };
 
     initAuth();
   }, []);
 
   const login = useCallback(async (credentials: LoginRequest) => {
+    console.log('AuthContext - Starting login...');
     setState(prev => ({ ...prev, is_loading: true, error: null }));
 
     try {
@@ -62,7 +75,6 @@ export const useAuth = () => {
             requires_2fa: true,
             is_loading: false,
           }));
-          setRenderVersion(v => v + 1);
 
           return { success: true, requires_2fa: true, expires_in: response.expires_in };
         } else {
@@ -79,9 +91,8 @@ export const useAuth = () => {
 
           authService.setAuthData(response.session_id!, user);
           
-          console.log('useAuth - Setting authenticated state with user:', user);
+          console.log('AuthContext - Login successful, setting authenticated state');
           
-          // IMPORTANTE: Actualizar el estado inmediatamente
           setState({
             user,
             session_id: response.session_id!,
@@ -92,10 +103,7 @@ export const useAuth = () => {
             error: null,
           });
           
-          // Forzar re-render
-          setRenderVersion(v => v + 1);
-          
-          console.log('useAuth - State updated, forcing re-render');
+          console.log('AuthContext - State updated to authenticated');
 
           return { success: true, requires_2fa: false };
         }
@@ -106,7 +114,6 @@ export const useAuth = () => {
           error: response.message,
           is_loading: false,
         }));
-        setRenderVersion(v => v + 1);
 
         return { success: false, error: response.message };
       }
@@ -117,7 +124,6 @@ export const useAuth = () => {
         error: errorMessage,
         is_loading: false,
       }));
-      setRenderVersion(v => v + 1);
 
       return { success: false, error: errorMessage };
     }
@@ -150,7 +156,6 @@ export const useAuth = () => {
         authService.setAuthData(response.session_id!, user);
         authService.clearTempSession();
 
-        // IMPORTANTE: Actualizar el estado inmediatamente
         setState({
           user,
           session_id: response.session_id!,
@@ -160,8 +165,6 @@ export const useAuth = () => {
           is_loading: false,
           error: null,
         });
-        
-        setRenderVersion(v => v + 1);
 
         return { success: true };
       } else {
@@ -170,7 +173,6 @@ export const useAuth = () => {
           error: response.message,
           is_loading: false,
         }));
-        setRenderVersion(v => v + 1);
 
         return { success: false, error: response.message };
       }
@@ -181,7 +183,6 @@ export const useAuth = () => {
         error: errorMessage,
         is_loading: false,
       }));
-      setRenderVersion(v => v + 1);
 
       return { success: false, error: errorMessage };
     }
@@ -201,39 +202,40 @@ export const useAuth = () => {
       ...initialState,
       is_loading: false,
     });
-    setRenderVersion(v => v + 1);
   }, [state.session_id]);
 
   const clearError = useCallback(() => {
     setState(prev => ({ ...prev, error: null }));
-    setRenderVersion(v => v + 1);
   }, []);
 
-  // Log para debug
-  console.log('useAuth - Current state:', {
+  console.log('AuthContext - Current state:', {
     isAuthenticated: state.is_authenticated,
     isLoading: state.is_loading,
-    hasUser: !!state.user,
-    renderVersion
+    hasUser: !!state.user
   });
 
-  return {
-    // State
-    user: state.user,
-    isAuthenticated: state.is_authenticated,
-    isLoading: state.is_loading,
-    error: state.error,
-    requires2FA: state.requires_2fa,
-    
-    // Actions
+  const contextValue: AuthContextType = {
+    ...state,
     login,
     verify2FA,
     logout,
     clearError,
-    
-    // Utils
     isInternalUser: state.user?.user_type === 'internal_user',
     isInstitutionalUser: state.user?.user_type === 'institutional_user',
     canAccessDashboard: state.user?.can_access_dashboard || false,
   };
+
+  return (
+    <AuthContext.Provider value={contextValue}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 };

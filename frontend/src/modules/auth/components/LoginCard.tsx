@@ -59,10 +59,10 @@ export const LoginCard: React.FC<LoginCardProps> = ({
           
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-zinc-700" />
+              <div className="w-full border-t border-slate-200" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-zinc-950 text-zinc-400">o continúa con</span>
+              <span className="px-4 bg-white text-slate-500">o continúa con</span>
             </div>
           </div>
         </div>
@@ -70,7 +70,7 @@ export const LoginCard: React.FC<LoginCardProps> = ({
 
       {/* Error Message */}
       {error && (
-        <div className="p-4 rounded-lg bg-red-950/50 border border-red-900 text-red-400 text-sm">
+        <div className="p-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
           {error}
         </div>
       )}
@@ -95,9 +95,9 @@ export const LoginCard: React.FC<LoginCardProps> = ({
             <input
               {...register('remember_me')}
               type="checkbox"
-              className="h-4 w-4 rounded border-zinc-700 bg-zinc-900 text-lime-400 focus:ring-lime-400 focus:ring-offset-zinc-950"
+              className="h-4 w-4 rounded border-slate-300 text-zinc-800 focus:ring-zinc-500 focus:ring-offset-0"
             />
-            <label className="ml-2 text-sm text-zinc-300">
+            <label className="ml-2 text-sm text-slate-600">
               Mantener sesión iniciada
             </label>
           </div>
@@ -105,7 +105,7 @@ export const LoginCard: React.FC<LoginCardProps> = ({
           <button
             type="button"
             onClick={navigateToRecovery}
-            className="text-sm text-lime-400 hover:text-lime-300 transition-colors"
+            className="text-sm text-zinc-800 hover:text-zinc-600 transition-colors font-medium"
           >
             ¿Olvidaste tu contraseña?
           </button>
@@ -121,9 +121,9 @@ export const LoginCard: React.FC<LoginCardProps> = ({
       </form>
 
       {/* Footer */}
-      <div className="text-center text-sm text-zinc-400">
+      <div className="text-center text-sm text-slate-500">
         ¿Necesitas una cuenta?{' '}
-        <button className="text-lime-400 hover:text-lime-300 transition-colors">
+        <button className="text-zinc-800 hover:text-zinc-600 transition-colors font-medium">
           Contacta al administrador
         </button>
       </div>

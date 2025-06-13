@@ -18,11 +18,11 @@ export const LoginButton: React.FC<LoginButtonProps> = ({
   disabled,
   ...props
 }) => {
-  const baseStyles = "inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:ring-offset-2 focus:ring-offset-zinc-950 disabled:opacity-50 disabled:cursor-not-allowed";
+  const baseStyles = "inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm";
   
   const variants = {
-    primary: "bg-lime-400 text-zinc-950 hover:bg-lime-300 active:bg-lime-500",
-    secondary: "bg-zinc-800 text-zinc-50 hover:bg-zinc-700 active:bg-zinc-900 border border-zinc-700"
+    primary: "bg-zinc-950 text-white hover:bg-zinc-800 active:bg-zinc-900 focus:ring-zinc-500 focus:ring-offset-white",
+    secondary: "bg-white text-slate-700 hover:bg-slate-50 active:bg-slate-100 border border-slate-300 focus:ring-zinc-500 focus:ring-offset-white"
   };
   
   const sizes = {

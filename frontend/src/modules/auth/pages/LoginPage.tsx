@@ -2,18 +2,34 @@
 import React from 'react';
 import { AuthLayout } from '../components/AuthLayout';
 import { LoginCard } from '../components/LoginCard';
-import { useAuth } from '../../../shared/hooks/useAuth';
+import { useAuth } from '../../../shared/context/AuthContext';
 
 export const LoginPage: React.FC = () => {
-  const { login, isLoading, error, clearError } = useAuth();
+  const { login, is_loading, error, clearError, is_authenticated } = useAuth();
+
+  // Debug: log cuando cambie isAuthenticated
+  React.useEffect(() => {
+    console.log('LoginPage - is_authenticated changed:', is_authenticated);
+  }, [is_authenticated]);
 
   const handleLogin = async (data: { identifier: string; password: string; remember_me: boolean }) => {
+    console.log('LoginPage - Attempting login with:', data.identifier);
     clearError();
     
-    await login({
-      ...data,
-      device_name: getDeviceName()
-    });
+    try {
+      const result = await login({
+        ...data,
+        device_name: getDeviceName()
+      });
+      
+      console.log('LoginPage - Login result:', result);
+      
+      // El estado se debería actualizar automáticamente en useAuth
+      // No necesitamos hacer nada más aquí
+      
+    } catch (error) {
+      console.error('LoginPage - Login error:', error);
+    }
   };
 
   const handleGoogleLogin = () => {
@@ -33,6 +49,11 @@ export const LoginPage: React.FC = () => {
     return 'Dispositivo Desconocido';
   };
 
+  // Debug: Si ya está autenticado, no debería mostrar esta página
+  if (is_authenticated) {
+    console.log('LoginPage - User is authenticated, this page should not be visible');
+  }
+
   return (
     <AuthLayout
       title="Iniciar Sesión"
@@ -42,7 +63,7 @@ export const LoginPage: React.FC = () => {
       <LoginCard
         onSubmit={handleLogin}
         onGoogleLogin={handleGoogleLogin}
-        isLoading={isLoading}
+        isLoading={is_loading}
         error={error || undefined}
       />
     </AuthLayout>
