@@ -14,14 +14,17 @@ interface ContentItem {
   date: string;
   views: number;
   category: string;
+  slug: string;
+  photoCount?: number;
 }
 
 interface ContentGridProps {
   items: ContentItem[];
   loading?: boolean;
+  onItemClick?: (item: ContentItem) => void;
 }
 
-export const ContentGrid: React.FC<ContentGridProps> = ({ items, loading }) => {
+export const ContentGrid: React.FC<ContentGridProps> = ({ items, loading, onItemClick }) => {
   const { isDark } = useTheme();
 
   if (loading) {
@@ -57,11 +60,13 @@ export const ContentGrid: React.FC<ContentGridProps> = ({ items, loading }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {items.map(item => (
-        item.type === 'video' ? (
-          <VideoCard key={item.id} item={item} />
-        ) : (
-          <GalleryCard key={item.id} item={item} />
-        )
+        <div key={item.id} onClick={() => onItemClick?.(item)}>
+          {item.type === 'video' ? (
+            <VideoCard item={item} />
+          ) : (
+            <GalleryCard item={item} />
+          )}
+        </div>
       ))}
     </div>
   );

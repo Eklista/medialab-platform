@@ -16,7 +16,7 @@ interface ContentItem {
   type: 'video' | 'gallery';
   title: string;
   thumbnail: string;
-  description: string;
+  description?: string;
   date: string;
   views: number;
   category: string;
@@ -33,9 +33,7 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({ facultySlug, categor
   const [categoryInfo] = useState({ name: 'Graduaciones', type: 'mixed' });
 
   useEffect(() => {
-    // Simular carga de datos
     const timer = setTimeout(() => {
-      // Mock data filtrada
       const mockData: ContentItem[] = [
         {
           id: 1,
@@ -79,7 +77,6 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({ facultySlug, categor
   return (
     <CMSLayout>
       <div className="space-y-6">
-        {/* Back Button */}
         <button 
           onClick={goBack}
           className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
@@ -92,7 +89,6 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({ facultySlug, categor
           Volver
         </button>
 
-        {/* Header */}
         <div className="space-y-4">
           <div>
             <div className={`text-sm font-medium mb-2 ${
@@ -119,7 +115,6 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({ facultySlug, categor
           </div>
         </div>
 
-        {/* Content Grid */}
         <ContentGrid 
           items={content} 
           loading={loading}

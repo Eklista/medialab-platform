@@ -39,7 +39,6 @@ export const FeaturedSection: React.FC<FeaturedSectionProps> = ({ items, onItemC
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Featured Item */}
         <div className="lg:col-span-2">
           <div 
             onClick={() => onItemClick?.(mainItem)}
@@ -57,7 +56,6 @@ export const FeaturedSection: React.FC<FeaturedSectionProps> = ({ items, onItemC
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
               
-              {/* Play/Gallery Icon */}
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="w-16 h-16 rounded-full bg-white/90 flex items-center justify-center group-hover:scale-110 transition-transform">
                   {mainItem.type === 'video' ? (
@@ -68,7 +66,6 @@ export const FeaturedSection: React.FC<FeaturedSectionProps> = ({ items, onItemC
                 </div>
               </div>
 
-              {/* Category Badge */}
               <div className="absolute top-4 left-4">
                 <span className={`px-3 py-1 text-sm font-medium rounded-full text-white ${
                   mainItem.type === 'video' ? 'bg-blue-600' : 'bg-emerald-600'
@@ -77,7 +74,6 @@ export const FeaturedSection: React.FC<FeaturedSectionProps> = ({ items, onItemC
                 </span>
               </div>
 
-              {/* Photo Count for galleries */}
               {mainItem.type === 'gallery' && mainItem.photoCount && (
                 <div className="absolute bottom-4 right-4">
                   <span className="px-2 py-1 text-sm font-medium bg-black/70 text-white rounded-full">
@@ -118,7 +114,6 @@ export const FeaturedSection: React.FC<FeaturedSectionProps> = ({ items, onItemC
           </div>
         </div>
 
-        {/* Side Featured Items */}
         <div className="space-y-4">
           {sideItems.map(item => (
             <div 

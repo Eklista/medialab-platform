@@ -11,7 +11,7 @@ interface ContentItem {
   type: 'video' | 'gallery';
   title: string;
   thumbnail: string;
-  description: string;
+  description?: string;
   date: string;
   views: number;
   category: string;
@@ -19,7 +19,6 @@ interface ContentItem {
   photoCount?: number;
 }
 
-// Mock data
 const mockContent: ContentItem[] = [
   {
     id: 1,
@@ -76,7 +75,6 @@ export const HomePage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [selectedCategory] = useState<string | null>(null);
 
-  // Simular carga de contenido
   useEffect(() => {
     setLoading(true);
     const timer = setTimeout(() => {
@@ -100,7 +98,6 @@ export const HomePage: React.FC = () => {
   return (
     <CMSLayout>
       <div className="space-y-8">
-        {/* Header */}
         <div className="text-center space-y-4">
           <h1 className={`text-4xl font-bold ${
             isDark ? 'text-slate-100' : 'text-slate-900'
@@ -115,10 +112,8 @@ export const HomePage: React.FC = () => {
           </p>
         </div>
 
-        {/* Featured Section */}
         <FeaturedSection items={content.slice(0, 3)} onItemClick={handleContentClick} />
 
-        {/* Content Section */}
         <div>
           <div className="flex items-center justify-between mb-6">
             <h2 className={`text-2xl font-bold ${

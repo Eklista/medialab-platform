@@ -11,11 +11,24 @@ interface SearchPageProps {
   query?: string;
 }
 
+interface ContentItem {
+  id: number;
+  type: 'video' | 'gallery';
+  title: string;
+  thumbnail: string;
+  description?: string;
+  date: string;
+  views: number;
+  category: string;
+  slug: string;
+  photoCount?: number;
+}
+
 export const SearchPage: React.FC<SearchPageProps> = ({ query = '' }) => {
   const { isDark } = useTheme();
   const { navigateToVideo, navigateToGallery, navigateToSearch } = useCMSNavigation();
   const [searchQuery, setSearchQuery] = useState(query);
-  const [results, setResults] = useState([]);
+  const [results, setResults] = useState<ContentItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState({
     type: 'all',
@@ -33,11 +46,9 @@ export const SearchPage: React.FC<SearchPageProps> = ({ query = '' }) => {
   const handleSearch = async (query: string) => {
     setLoading(true);
     
-    // Simular búsqueda
     await new Promise(resolve => setTimeout(resolve, 800));
     
-    // Mock results
-    const mockResults = [
+    const mockResults: ContentItem[] = [
       {
         id: 1,
         type: 'video' as const,
@@ -51,7 +62,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({ query = '' }) => {
       }
     ].filter(item => 
       item.title.toLowerCase().includes(query.toLowerCase()) ||
-      item.description.toLowerCase().includes(query.toLowerCase()) ||
+      (item.description && item.description.toLowerCase().includes(query.toLowerCase())) ||
       item.category.toLowerCase().includes(query.toLowerCase())
     );
 
@@ -59,7 +70,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({ query = '' }) => {
     setLoading(false);
   };
 
-  const handleContentClick = (item: any) => {
+  const handleContentClick = (item: ContentItem) => {
     if (item.type === 'video') {
       navigateToVideo(item.slug);
     } else {
@@ -70,7 +81,6 @@ export const SearchPage: React.FC<SearchPageProps> = ({ query = '' }) => {
   return (
     <CMSLayout>
       <div className="space-y-6">
-        {/* Search Header */}
         <div className="space-y-4">
           <div className="relative">
             <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
@@ -103,14 +113,12 @@ export const SearchPage: React.FC<SearchPageProps> = ({ query = '' }) => {
           )}
         </div>
 
-        {/* Search Filters */}
         <SearchFilters 
           onSearch={handleSearch}
           onFilterChange={setFilters}
           onSortChange={(sort) => setFilters(prev => ({ ...prev, sortBy: sort }))}
         />
 
-        {/* Results */}
         <ContentGrid 
           items={results} 
           loading={loading}
