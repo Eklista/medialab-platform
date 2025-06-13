@@ -1,5 +1,5 @@
 """
-CMS Video Controller - Orquestación de endpoints para videos
+CMS Video Controller - Corrección para campos uuid
 """
 from typing import List, Dict, Any
 from sqlalchemy.orm import Session
@@ -10,7 +10,6 @@ from app.modules.cms.schemas.video_schemas import (
     VideoSearchParams, VideoListResponse, VideoStatsResponse
 )
 from app.modules.cms.services.video_service import video_service
-
 
 class VideoController:
     """Controller para operaciones de videos"""

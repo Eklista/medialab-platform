@@ -673,7 +673,6 @@ class GalleryController:
             'updated_at': gallery.updated_at
         }
         
-        # Agregar datos relacionados si están disponibles y no es minimal
         if not minimal:
             if hasattr(gallery, 'category') and gallery.category:
                 response_data['category'] = {

@@ -1,5 +1,5 @@
 """
-CMS Gallery Repository - Acceso a datos optimizado para galerías
+CMS Gallery Repository - Acceso a datos optimizado para galerías - CORREGIDO
 """
 from datetime import datetime, date
 from typing import Optional, List, Tuple, Dict, Any
@@ -108,7 +108,6 @@ class GalleryRepository:
         """Obtener lista paginada de galerías con filtros avanzados"""
         
         if minimal:
-            # Para listings, solo campos esenciales
             query = db.query(Gallery).options(
                 load_only(
                     Gallery.id,
@@ -128,7 +127,6 @@ class GalleryRepository:
                 )
             )
         else:
-            # Para detalles, incluir relaciones selectivas
             options = []
             
             if include_category:
@@ -233,7 +231,6 @@ class GalleryRepository:
             order_func = asc if sort_order == "asc" else desc
             query = query.order_by(order_func(Gallery.photographer))
         else:
-            # Orden por defecto
             query = query.order_by(desc(Gallery.created_at))
         
         # Aplicar paginación
@@ -427,7 +424,7 @@ class GalleryRepository:
             
             # Calcular tamaño total
             total_size = sum(photo.get('file_size', 0) for photo in current_photos)
-            gallery.total_size_mb = total_size // (1024 * 1024)  # Convertir a MB
+            gallery.total_size_mb = total_size // (1024 * 1024)
             
             db.flush()
     
@@ -453,15 +450,12 @@ class GalleryRepository:
         """Reordenar fotos en una galería"""
         gallery = db.query(Gallery).filter(Gallery.id == gallery_id).first()
         if gallery and gallery.photos:
-            # Crear diccionario de órdenes
             order_map = {item['filename']: item['sort_order'] for item in photo_orders}
             
-            # Actualizar sort_order de cada foto
             for photo in gallery.photos:
                 if photo['filename'] in order_map:
                     photo['sort_order'] = order_map[photo['filename']]
             
-            # Ordenar fotos por sort_order
             gallery.photos.sort(key=lambda x: x.get('sort_order', 0))
             
             db.flush()
@@ -482,7 +476,6 @@ class GalleryRepository:
         """Establecer foto de portada"""
         gallery = db.query(Gallery).filter(Gallery.id == gallery_id).first()
         if gallery:
-            # Buscar la foto en la galería
             for photo in gallery.photos or []:
                 if photo['filename'] == photo_filename:
                     gallery.cover_photo = photo['processed_path']
@@ -552,7 +545,6 @@ class GalleryRepository:
     @staticmethod
     def get_related(db: Session, gallery: Gallery, limit: int = 5) -> List[Gallery]:
         """Obtener galerías relacionadas"""
-        # Galerías de la misma categoría, excluyendo la actual
         related = (
             db.query(Gallery)
             .options(
@@ -574,7 +566,6 @@ class GalleryRepository:
             .all()
         )
         
-        # Si no hay suficientes, agregar galerías del mismo tipo de contenido
         if len(related) < limit:
             additional = (
                 db.query(Gallery)
@@ -603,7 +594,7 @@ class GalleryRepository:
     
     @staticmethod
     def get_statistics(db: Session) -> Dict[str, Any]:
-        """Obtener estadísticas de galerías"""
+        """Obtener estadísticas de galerías - CORREGIDO para MySQL"""
         stats = {}
         
         # Estadísticas básicas
@@ -633,104 +624,119 @@ class GalleryRepository:
         stats['total_size_gb'] = round((content_stats.total_size_mb or 0) / 1024, 2)
         
         # Por categoría
-        category_stats = (
-            db.query(
-                Category.name,
-                func.count(Gallery.id).label('gallery_count'),
-                func.sum(Gallery.photo_count).label('total_photos'),
-                func.sum(Gallery.view_count).label('total_views')
+        try:
+            category_stats = (
+                db.query(
+                    Category.name,
+                    func.count(Gallery.id).label('gallery_count'),
+                    func.sum(Gallery.photo_count).label('total_photos'),
+                    func.sum(Gallery.view_count).label('total_views')
+                )
+                .join(Gallery, Category.id == Gallery.category_id)
+                .filter(Gallery.is_published == True)
+                .group_by(Category.id, Category.name)
+                .all()
             )
-            .join(Gallery, Category.id == Gallery.category_id)
-            .filter(Gallery.is_published == True)
-            .group_by(Category.id, Category.name)
-            .all()
-        )
-        stats['by_category'] = {
-            stat.name: {
-                'count': stat.gallery_count,
-                'photos': stat.total_photos or 0,
-                'views': stat.total_views or 0
+            stats['by_category'] = {
+                stat.name: {
+                    'count': stat.gallery_count,
+                    'photos': stat.total_photos or 0,
+                    'views': stat.total_views or 0
+                }
+                for stat in category_stats
             }
-            for stat in category_stats
-        }
+        except Exception:
+            stats['by_category'] = {}
         
         # Por tipo de contenido
-        content_type_stats = (
-            db.query(
-                Gallery.content_type,
-                func.count(Gallery.id).label('count'),
-                func.sum(Gallery.photo_count).label('total_photos'),
-                func.sum(Gallery.view_count).label('total_views')
+        try:
+            content_type_stats = (
+                db.query(
+                    Gallery.content_type,
+                    func.count(Gallery.id).label('count'),
+                    func.sum(Gallery.photo_count).label('total_photos'),
+                    func.sum(Gallery.view_count).label('total_views')
+                )
+                .filter(Gallery.is_published == True)
+                .group_by(Gallery.content_type)
+                .all()
             )
-            .filter(Gallery.is_published == True)
-            .group_by(Gallery.content_type)
-            .all()
-        )
-        stats['by_content_type'] = {
-            stat.content_type: {
-                'count': stat.count,
-                'photos': stat.total_photos or 0,
-                'views': stat.total_views or 0
+            stats['by_content_type'] = {
+                stat.content_type: {
+                    'count': stat.count,
+                    'photos': stat.total_photos or 0,
+                    'views': stat.total_views or 0
+                }
+                for stat in content_type_stats
             }
-            for stat in content_type_stats
-        }
+        except Exception:
+            stats['by_content_type'] = {}
         
         # Por estado
-        status_stats = (
-            db.query(
-                Gallery.status,
-                func.count(Gallery.id).label('count')
+        try:
+            status_stats = (
+                db.query(
+                    Gallery.status,
+                    func.count(Gallery.id).label('count')
+                )
+                .group_by(Gallery.status)
+                .all()
             )
-            .group_by(Gallery.status)
-            .all()
-        )
-        stats['by_status'] = {stat.status: stat.count for stat in status_stats}
+            stats['by_status'] = {stat.status: stat.count for stat in status_stats}
+        except Exception:
+            stats['by_status'] = {}
         
-        # Por mes (últimos 12 meses)
-        monthly_stats = (
-            db.query(
-                func.date_format(Gallery.created_at, '%Y-%m').label('month'),
-                func.count(Gallery.id).label('count'),
-                func.sum(Gallery.photo_count).label('photos')
+        # Por mes - CORREGIDO para MySQL
+        try:
+            monthly_stats = (
+                db.query(
+                    func.date_format(Gallery.created_at, '%Y-%m').label('month'),
+                    func.count(Gallery.id).label('count'),
+                    func.sum(Gallery.photo_count).label('photos')
+                )
+                .filter(Gallery.created_at >= text("DATE_SUB(NOW(), INTERVAL 12 MONTH)"))
+                .group_by(func.date_format(Gallery.created_at, '%Y-%m'))
+                .order_by(func.date_format(Gallery.created_at, '%Y-%m'))
+                .all()
             )
-            .filter(Gallery.created_at >= func.date_sub(func.now(), func.interval(12, 'month')))
-            .group_by(func.date_format(Gallery.created_at, '%Y-%m'))
-            .order_by(func.date_format(Gallery.created_at, '%Y-%m'))
-            .all()
-        )
-        stats['by_month'] = {
-            stat.month: {
-                'galleries': stat.count,
-                'photos': stat.photos or 0
+            stats['by_month'] = {
+                stat.month: {
+                    'galleries': stat.count,
+                    'photos': stat.photos or 0
+                }
+                for stat in monthly_stats
             }
-            for stat in monthly_stats
-        }
+        except Exception:
+            stats['by_month'] = {}
         
         # Top fotógrafos
-        photographer_stats = (
-            db.query(
-                Gallery.photographer,
-                func.count(Gallery.id).label('gallery_count'),
-                func.sum(Gallery.photo_count).label('total_photos')
+        try:
+            photographer_stats = (
+                db.query(
+                    Gallery.photographer,
+                    func.count(Gallery.id).label('gallery_count'),
+                    func.sum(Gallery.photo_count).label('total_photos')
+                )
+                .filter(
+                    Gallery.is_published == True,
+                    Gallery.photographer.isnot(None),
+                    Gallery.photographer != ''
+                )
+                .group_by(Gallery.photographer)
+                .order_by(desc(func.count(Gallery.id)))
+                .limit(10)
+                .all()
             )
-            .filter(
-                Gallery.is_published == True,
-                Gallery.photographer.isnot(None),
-                Gallery.photographer != ''
-            )
-            .group_by(Gallery.photographer)
-            .order_by(desc(func.count(Gallery.id)))
-            .limit(10)
-            .all()
-        )
-        stats['top_photographers'] = [
-            {
-                'name': stat.photographer,
-                'galleries': stat.gallery_count,
-                'photos': stat.total_photos or 0
-            }
-            for stat in photographer_stats
-        ]
+            stats['top_photographers'] = [
+                {
+                    'name': stat.photographer,
+                    'galleries': stat.gallery_count,
+                    'photos': stat.total_photos or 0
+                }
+                for stat in photographer_stats
+            ]
+        except Exception:
+            stats['top_photographers'] = []
         
         return stats
     
@@ -801,7 +807,6 @@ class GalleryRepository:
         """Limpiar fotos huérfanas de una galería"""
         gallery = db.query(Gallery).filter(Gallery.id == gallery_id).first()
         if gallery and gallery.photos:
-            # Filtrar solo fotos que existen físicamente
             gallery.photos = [
                 photo for photo in gallery.photos
                 if photo.get('filename') in existing_filenames

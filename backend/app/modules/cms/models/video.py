@@ -1,14 +1,15 @@
+# backend/app/modules/cms/models/video.py
 """
-Video model - Base unificado VERIFICADO
+Video model - Usando BaseModelHybrid para tener ID interno y UUID público
 """
 from datetime import date
 from sqlalchemy import String, Text, Integer, Date, ForeignKey, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.shared.base.base_model import BaseModelWithUUID
+from app.shared.base.base_model import BaseModelHybrid
 
 
-class Video(BaseModelWithUUID):
+class Video(BaseModelHybrid):
     """
     Video model for MediaLab content
     """
@@ -38,7 +39,7 @@ class Video(BaseModelWithUUID):
     video_quality: Mapped[str] = mapped_column(String(20), nullable=True)
     aspect_ratio: Mapped[str] = mapped_column(String(20), nullable=True)
     
-    # Relationships
+    # Relationships - usando INTEGER IDs para foreign keys
     category_id: Mapped[int] = mapped_column(
         Integer,
         ForeignKey("categories.id", ondelete="RESTRICT"),
@@ -73,11 +74,11 @@ class Video(BaseModelWithUUID):
     allow_comments: Mapped[bool] = mapped_column(nullable=False, default=True)
     allow_embedding: Mapped[bool] = mapped_column(nullable=False, default=True)
     
-    # Relationships - USANDO STRINGS
+    # Relationships
     category = relationship("Category", back_populates="videos")
     author = relationship("InternalUser", back_populates="authored_videos")
     
-    # Critical indexes only
+    # Indexes
     __table_args__ = (
         Index("idx_video_title", "title"),
         Index("idx_video_category", "category_id"),
@@ -87,6 +88,7 @@ class Video(BaseModelWithUUID):
         Index("idx_video_status", "status"),
         Index("idx_video_slug", "slug"),
         Index("idx_video_event_date", "event_date"),
+        Index("idx_video_uuid", "uuid"),
     )
     
     def __repr__(self) -> str:

@@ -1,15 +1,16 @@
+# backend/app/modules/cms/models/gallery.py
 """
-Gallery model - Base unificado VERIFICADO
+Gallery model - Usando BaseModelHybrid para tener ID interno y UUID público
 """
 from datetime import date
 from sqlalchemy import String, Text, Integer, Date, ForeignKey, Index, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import List, Dict, Any
 
-from app.shared.base.base_model import BaseModelWithUUID
+from app.shared.base.base_model import BaseModelHybrid
 
 
-class Gallery(BaseModelWithUUID):
+class Gallery(BaseModelHybrid):
     """
     Gallery model for MediaLab photo collections
     """
@@ -40,7 +41,7 @@ class Gallery(BaseModelWithUUID):
     photographer: Mapped[str] = mapped_column(String(100), nullable=True)
     location: Mapped[str] = mapped_column(String(200), nullable=True)
     
-    # Relationships
+    # Relationships - usando INTEGER IDs para foreign keys
     category_id: Mapped[int] = mapped_column(
         Integer,
         ForeignKey("categories.id", ondelete="RESTRICT"),
@@ -77,11 +78,11 @@ class Gallery(BaseModelWithUUID):
     allow_comments: Mapped[bool] = mapped_column(nullable=False, default=True)
     watermark_enabled: Mapped[bool] = mapped_column(nullable=False, default=False)
     
-    # Relationships - USANDO STRINGS
+    # Relationships
     category = relationship("Category", back_populates="galleries")
     author = relationship("InternalUser", back_populates="authored_galleries")
     
-    # Critical indexes only
+    # Indexes
     __table_args__ = (
         Index("idx_gallery_title", "title"),
         Index("idx_gallery_category", "category_id"),
@@ -91,6 +92,7 @@ class Gallery(BaseModelWithUUID):
         Index("idx_gallery_status", "status"),
         Index("idx_gallery_slug", "slug"),
         Index("idx_gallery_event_date", "event_date"),
+        Index("idx_gallery_uuid", "uuid"),
     )
     
     def __repr__(self) -> str:

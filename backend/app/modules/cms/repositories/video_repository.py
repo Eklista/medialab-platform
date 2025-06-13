@@ -1,10 +1,10 @@
 """
-CMS Video Repository - Acceso a datos optimizado para videos
+CMS Video Repository - Acceso a datos optimizado para videos - CORREGIDO
 """
 from datetime import datetime, date
 from typing import Optional, List, Tuple, Dict, Any
 from sqlalchemy.orm import Session, joinedload, selectinload, load_only
-from sqlalchemy import or_, and_, func, desc, asc, between
+from sqlalchemy import or_, and_, func, desc, asc, between, text
 
 from app.modules.cms.models import Video, Category
 from app.modules.users.models import InternalUser
@@ -103,7 +103,6 @@ class VideoRepository:
         """Obtener lista paginada de videos con filtros avanzados"""
         
         if minimal:
-            # Para listings, solo campos esenciales
             query = db.query(Video).options(
                 load_only(
                     Video.id,
@@ -123,7 +122,6 @@ class VideoRepository:
                 )
             )
         else:
-            # Para detalles, incluir relaciones selectivas
             options = []
             
             if include_category:
@@ -213,7 +211,6 @@ class VideoRepository:
             order_func = desc if sort_order == "desc" else asc
             query = query.order_by(order_func(Video.duration))
         else:
-            # Orden por defecto
             query = query.order_by(desc(Video.created_at))
         
         # Aplicar paginación
@@ -416,7 +413,6 @@ class VideoRepository:
     @staticmethod
     def get_related(db: Session, video: Video, limit: int = 5) -> List[Video]:
         """Obtener videos relacionados"""
-        # Videos de la misma categoría, excluyendo el actual
         related = (
             db.query(Video)
             .options(
@@ -438,7 +434,6 @@ class VideoRepository:
             .all()
         )
         
-        # Si no hay suficientes, agregar videos del mismo tipo de contenido
         if len(related) < limit:
             additional = (
                 db.query(Video)
@@ -467,7 +462,7 @@ class VideoRepository:
     
     @staticmethod
     def get_statistics(db: Session) -> Dict[str, Any]:
-        """Obtener estadísticas de videos"""
+        """Obtener estadísticas de videos - CORREGIDO para MySQL"""
         stats = {}
         
         # Estadísticas básicas
@@ -490,70 +485,82 @@ class VideoRepository:
         stats['total_views'] = engagement_stats.total_views or 0
         stats['total_likes'] = engagement_stats.total_likes or 0
         stats['total_shares'] = engagement_stats.total_shares or 0
-        stats['total_duration'] = engagement_stats.total_duration or 0  # en segundos
+        stats['total_duration'] = engagement_stats.total_duration or 0
         
         # Por categoría
-        category_stats = (
-            db.query(
-                Category.name,
-                func.count(Video.id).label('video_count'),
-                func.sum(Video.view_count).label('total_views')
+        try:
+            category_stats = (
+                db.query(
+                    Category.name,
+                    func.count(Video.id).label('video_count'),
+                    func.sum(Video.view_count).label('total_views')
+                )
+                .join(Video, Category.id == Video.category_id)
+                .filter(Video.is_published == True)
+                .group_by(Category.id, Category.name)
+                .all()
             )
-            .join(Video, Category.id == Video.category_id)
-            .filter(Video.is_published == True)
-            .group_by(Category.id, Category.name)
-            .all()
-        )
-        stats['by_category'] = {
-            stat.name: {
-                'count': stat.video_count,
-                'views': stat.total_views or 0
+            stats['by_category'] = {
+                stat.name: {
+                    'count': stat.video_count,
+                    'views': stat.total_views or 0
+                }
+                for stat in category_stats
             }
-            for stat in category_stats
-        }
+        except Exception:
+            stats['by_category'] = {}
         
         # Por tipo de contenido
-        content_type_stats = (
-            db.query(
-                Video.content_type,
-                func.count(Video.id).label('count'),
-                func.sum(Video.view_count).label('total_views')
+        try:
+            content_type_stats = (
+                db.query(
+                    Video.content_type,
+                    func.count(Video.id).label('count'),
+                    func.sum(Video.view_count).label('total_views')
+                )
+                .filter(Video.is_published == True)
+                .group_by(Video.content_type)
+                .all()
             )
-            .filter(Video.is_published == True)
-            .group_by(Video.content_type)
-            .all()
-        )
-        stats['by_content_type'] = {
-            stat.content_type: {
-                'count': stat.count,
-                'views': stat.total_views or 0
+            stats['by_content_type'] = {
+                stat.content_type: {
+                    'count': stat.count,
+                    'views': stat.total_views or 0
+                }
+                for stat in content_type_stats
             }
-            for stat in content_type_stats
-        }
+        except Exception:
+            stats['by_content_type'] = {}
         
         # Por estado
-        status_stats = (
-            db.query(
-                Video.status,
-                func.count(Video.id).label('count')
+        try:
+            status_stats = (
+                db.query(
+                    Video.status,
+                    func.count(Video.id).label('count')
+                )
+                .group_by(Video.status)
+                .all()
             )
-            .group_by(Video.status)
-            .all()
-        )
-        stats['by_status'] = {stat.status: stat.count for stat in status_stats}
+            stats['by_status'] = {stat.status: stat.count for stat in status_stats}
+        except Exception:
+            stats['by_status'] = {}
         
-        # Por mes (últimos 12 meses)
-        monthly_stats = (
-            db.query(
-                func.date_format(Video.created_at, '%Y-%m').label('month'),
-                func.count(Video.id).label('count')
+        # Por mes - CORREGIDO para MySQL
+        try:
+            monthly_stats = (
+                db.query(
+                    func.date_format(Video.created_at, '%Y-%m').label('month'),
+                    func.count(Video.id).label('count')
+                )
+                .filter(Video.created_at >= text("DATE_SUB(NOW(), INTERVAL 12 MONTH)"))
+                .group_by(func.date_format(Video.created_at, '%Y-%m'))
+                .order_by(func.date_format(Video.created_at, '%Y-%m'))
+                .all()
             )
-            .filter(Video.created_at >= func.date_sub(func.now(), func.interval(12, 'month')))
-            .group_by(func.date_format(Video.created_at, '%Y-%m'))
-            .order_by(func.date_format(Video.created_at, '%Y-%m'))
-            .all()
-        )
-        stats['by_month'] = {stat.month: stat.count for stat in monthly_stats}
+            stats['by_month'] = {stat.month: stat.count for stat in monthly_stats}
+        except Exception:
+            stats['by_month'] = {}
         
         return stats
     
