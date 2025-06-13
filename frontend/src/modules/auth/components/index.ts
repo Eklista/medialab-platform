@@ -2,3 +2,4 @@
 export * from './AuthLayout';
 export * from './LoginCard';
 export * from './TwoFactorCard';
+export * from './RecoveryCard';

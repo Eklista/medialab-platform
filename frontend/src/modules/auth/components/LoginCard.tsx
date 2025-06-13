@@ -8,8 +8,8 @@ import { EmailInput } from '../ui/inputs/EmailInput';
 import { PasswordInput } from '../ui/inputs/PasswordInput';
 import { LoginButton } from '../ui/buttons/LoginButton';
 import { GoogleLoginButton } from '../ui/buttons/GoogleLoginButton';
+import { useAuthNavigation } from '../context/AuthNavigationContext';
 
-// Schema más simple sin default
 const loginSchema = z.object({
   identifier: z.string().min(1, 'El correo o usuario es requerido'),
   password: z.string().min(1, 'La contraseña es requerida'),
@@ -31,6 +31,8 @@ export const LoginCard: React.FC<LoginCardProps> = ({
   isLoading = false,
   error
 }) => {
+  const { navigateToRecovery } = useAuthNavigation();
+  
   const {
     register,
     handleSubmit,
@@ -102,6 +104,7 @@ export const LoginCard: React.FC<LoginCardProps> = ({
 
           <button
             type="button"
+            onClick={navigateToRecovery}
             className="text-sm text-lime-400 hover:text-lime-300 transition-colors"
           >
             ¿Olvidaste tu contraseña?

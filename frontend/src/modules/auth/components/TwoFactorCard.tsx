@@ -2,12 +2,13 @@
 import React, { useState, useEffect } from 'react';
 import { CodeInput } from '../ui/inputs/CodeInput';
 import { LoginButton } from '../ui/buttons/LoginButton';
+import { useAuthNavigation } from '../context/AuthNavigationContext';
 
 interface TwoFactorCardProps {
   onSubmit: (code: string) => Promise<void>;
   isLoading?: boolean;
   error?: string;
-  expiresIn?: number; // segundos
+  expiresIn?: number;
 }
 
 export const TwoFactorCard: React.FC<TwoFactorCardProps> = ({
@@ -18,6 +19,7 @@ export const TwoFactorCard: React.FC<TwoFactorCardProps> = ({
 }) => {
   const [code, setCode] = useState('');
   const [timeLeft, setTimeLeft] = useState(expiresIn);
+  const { navigateToLogin } = useAuthNavigation();
 
   useEffect(() => {
     if (timeLeft <= 0) return;
@@ -26,8 +28,7 @@ export const TwoFactorCard: React.FC<TwoFactorCardProps> = ({
       setTimeLeft(prev => {
         if (prev <= 1) {
           clearInterval(timer);
-          // Redirigir al login cuando expire
-          window.location.reload();
+          navigateToLogin();
           return 0;
         }
         return prev - 1;
@@ -35,7 +36,7 @@ export const TwoFactorCard: React.FC<TwoFactorCardProps> = ({
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [timeLeft]);
+  }, [timeLeft, navigateToLogin]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,7 +98,7 @@ export const TwoFactorCard: React.FC<TwoFactorCardProps> = ({
         
         <button
           type="button"
-          onClick={() => window.location.reload()}
+          onClick={navigateToLogin}
           className="text-sm text-lime-400 hover:text-lime-300 transition-colors"
         >
           Volver al inicio de sesión
