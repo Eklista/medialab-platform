@@ -1,6 +1,6 @@
-// src/App.tsx
-import React from 'react';
+// frontend/src/App.tsx (actualizado para integrar CMS como landing)
 import { AuthRouter } from './modules/auth/AuthRouter';
+import { CMSRouter } from './modules/cmsFrontend/CMSRouter';
 import { DashboardHome } from './modules/dashboardHome/DashboardHome';
 import { useAuth } from './shared/context/AuthContext';
 import { LoadingScreen } from './shared/components/LoadingScreen';
@@ -31,13 +31,22 @@ function App() {
     );
   }
 
-  // Si no está autenticado, mostrar auth
-  console.log('App - Rendering AuthRouter');
-  return (
-    <div className="min-h-screen bg-slate-50">
-      <AuthRouter />
-    </div>
-  );
+  // Determinar qué mostrar basado en la URL
+  const currentPath = window.location.pathname;
+  
+  // Si está en rutas de auth, mostrar AuthRouter
+  if (currentPath.startsWith('/auth') || currentPath === '/login') {
+    console.log('App - Rendering AuthRouter');
+    return (
+      <div className="min-h-screen bg-slate-50">
+        <AuthRouter />
+      </div>
+    );
+  }
+
+  // Por defecto, mostrar CMS Frontend como landing
+  console.log('App - Rendering CMS Landing');
+  return <CMSRouter />;
 }
 
 export default App;
