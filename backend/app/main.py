@@ -153,7 +153,8 @@ def setup_routes(app: FastAPI) -> None:
             "version": settings.APP_VERSION,
             "debug": settings.DEBUG
         }
-      # Environment info endpoint (dev only)
+    
+    # Environment info endpoint (dev only)
     if settings.is_development:
         @app.get("/debug/env", tags=["Debug"])
         async def debug_environment():
@@ -166,16 +167,18 @@ def setup_routes(app: FastAPI) -> None:
             from app.models import get_registry_info
             return get_registry_info()
     
-    # API routes
+    # API routes - Existing modules
     from app.modules.auth.router import router as auth_router
     from app.modules.users.router import router as users_router
     from app.modules.security.router import router as security_router
     from app.modules.organizations.router import router as organizations_router
+    from app.modules.cms.router import router as cms_router
     
     app.include_router(auth_router, prefix=settings.API_V1_PREFIX, tags=["Authentication"])
     app.include_router(users_router, prefix=settings.API_V1_PREFIX, tags=["Users"])
     app.include_router(security_router, prefix=settings.API_V1_PREFIX, tags=["Security"])
     app.include_router(organizations_router, prefix=settings.API_V1_PREFIX, tags=["Organizations"])
+    app.include_router(cms_router, prefix=settings.API_V1_PREFIX, tags=["CMS"])
     
     # Root endpoint
     @app.get("/", tags=["System"])
@@ -185,7 +188,14 @@ def setup_routes(app: FastAPI) -> None:
             "message": "Universidad Galileo MediaLab Platform API",
             "version": settings.APP_VERSION,
             "environment": settings.ENVIRONMENT,
-            "docs_url": "/docs" if settings.features.ENABLE_API_DOCS else None
+            "docs_url": "/docs" if settings.features.ENABLE_API_DOCS else None,
+            "modules": [
+                "Authentication", 
+                "Users", 
+                "Security", 
+                "Organizations",
+                "CMS"
+            ]
         }
 
 
