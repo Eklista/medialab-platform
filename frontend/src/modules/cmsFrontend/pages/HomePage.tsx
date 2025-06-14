@@ -1,141 +1,160 @@
-// frontend/src/modules/cmsFrontend/pages/HomePage.tsx
-import React, { useState, useEffect } from 'react';
-import { CMSLayout } from '../components/layout/CMSLayout';
-import { ContentGrid } from '../components/content/ContentGrid';
-import { FeaturedSection } from '../components/content/FeaturedSection';
-import { useTheme } from '../context/ThemeContext';
-import { useCMSNavigation } from '../context/CMSNavigationContext';
-
-interface ContentItem {
-  id: number;
-  type: 'video' | 'gallery';
-  title: string;
-  thumbnail: string;
-  description?: string;
-  date: string;
-  views: number;
-  category: string;
-  slug: string;
-  photoCount?: number;
-}
-
-const mockContent: ContentItem[] = [
-  {
-    id: 1,
-    type: 'video',
-    title: 'Graduación FISICC 2024 - Ceremonia Principal',
-    thumbnail: 'https://images.unsplash.com/photo-1523050854058-8df90110c9d1?w=400&h=225&fit=crop',
-    description: 'Ceremonia de graduación de la promoción 2024 de la Facultad de Ingeniería de Sistemas',
-    date: '2024-06-15',
-    views: 1245,
-    category: 'Graduaciones',
-    slug: 'graduacion-fisicc-2024-ceremonia-principal'
-  },
-  {
-    id: 2,
-    type: 'gallery',
-    title: 'Conferencia de Inteligencia Artificial',
-    thumbnail: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400&h=225&fit=crop',
-    description: 'Fotos de la conferencia magistral sobre IA en la educación',
-    date: '2024-06-10',
-    views: 892,
-    category: 'Conferencias',
-    slug: 'conferencia-inteligencia-artificial',
-    photoCount: 24
-  },
-  {
-    id: 3,
-    type: 'video',
-    title: 'Feria de Ciencias FING 2024',
-    thumbnail: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=225&fit=crop',
-    description: 'Presentación de proyectos estudiantiles en la feria anual',
-    date: '2024-06-08',
-    views: 2103,
-    category: 'Eventos',
-    slug: 'feria-ciencias-fing-2024'
-  },
-  {
-    id: 4,
-    type: 'gallery',
-    title: 'Graduación FACMED - Medicina General',
-    thumbnail: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=225&fit=crop',
-    description: 'Ceremonia de graduación de médicos generales',
-    date: '2024-06-05',
-    views: 3401,
-    category: 'Graduaciones',
-    slug: 'graduacion-facmed-medicina-general',
-    photoCount: 48
-  }
-];
+// src/modules/cmsFrontend/pages/HomePage.tsx
+import React from 'react'
+import { ContentLayout } from '../components/layout/Layout'
+import { 
+  HeroSection, 
+  FacultiesGrid, 
+  FeaturedContent, 
+  StatsSection,
+  LiveStreamCard 
+} from '../components/sections'
+import { Card, CardContent } from '../components/ui/Card'
+import { getCurrentLiveStream } from '../data/mockLiveStream'
+import type { Faculty, ContentItem, LiveStream } from '../data/types'
 
 export const HomePage: React.FC = () => {
-  const { isDark } = useTheme();
-  const { navigateToVideo, navigateToGallery } = useCMSNavigation();
-  const [content] = useState<ContentItem[]>(mockContent);
-  const [loading, setLoading] = useState(false);
-  const [selectedCategory] = useState<string | null>(null);
+  const [showChat, setShowChat] = React.useState(false)
+  const [isFirstVisit] = React.useState(() => {
+    // Check if it's user's first visit
+    return !localStorage.getItem('cms-visited')
+  })
+  
+  const currentLive = getCurrentLiveStream()
 
-  useEffect(() => {
-    setLoading(true);
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 800);
-    return () => clearTimeout(timer);
-  }, [selectedCategory]);
+  React.useEffect(() => {
+    // Mark as visited
+    localStorage.setItem('cms-visited', 'true')
+  }, [])
 
-  const filteredContent = selectedCategory 
-    ? content.filter(item => item.category === selectedCategory)
-    : content;
+  const handleFacultyClick = (faculty: Faculty) => {
+    console.log('Navigate to faculty:', faculty.slug)
+    // TODO: Implement navigation
+  }
 
-  const handleContentClick = (item: ContentItem) => {
-    if (item.type === 'video') {
-      navigateToVideo(item.slug);
-    } else {
-      navigateToGallery(item.slug);
-    }
-  };
+  const handleContentClick = (content: ContentItem) => {
+    console.log('Navigate to content:', content.slug, content.type)
+    // TODO: Implement navigation
+  }
+
+  const handleLiveStreamClick = (stream: LiveStream) => {
+    console.log('Watch live stream:', stream.id)
+    // TODO: Implement live stream modal or navigation
+  }
+
+  const handleChatToggle = () => {
+    setShowChat(!showChat)
+  }
+
+  // Intelligent layout based on context
+  const shouldShowFullHero = isFirstVisit && !currentLive
+  const shouldShowLiveFirst = currentLive && !isFirstVisit
 
   return (
-    <CMSLayout>
-      <div className="space-y-8">
-        <div className="text-center space-y-4">
-          <h1 className={`text-4xl font-bold ${
-            isDark ? 'text-slate-100' : 'text-slate-900'
-          }`}>
-            MediaLab Universidad Galileo
-          </h1>
-          <p className={`text-lg max-w-2xl mx-auto ${
-            isDark ? 'text-slate-400' : 'text-slate-600'
-          }`}>
-            Explora videos, galerías y contenido multimedia de las diferentes facultades 
-            de la Universidad Galileo
-          </p>
-        </div>
-
-        <FeaturedSection items={content.slice(0, 3)} onItemClick={handleContentClick} />
-
-        <div>
-          <div className="flex items-center justify-between mb-6">
-            <h2 className={`text-2xl font-bold ${
-              isDark ? 'text-slate-100' : 'text-slate-900'
-            }`}>
-              {selectedCategory ? `Contenido de ${selectedCategory}` : 'Todo el Contenido'}
-            </h2>
-            
-            <div className={`text-sm ${
-              isDark ? 'text-slate-400' : 'text-slate-600'
-            }`}>
-              {filteredContent.length} elementos encontrados
+    <ContentLayout>
+      <div className="space-y-16">
+        
+        {/* Live Stream Priority Section - Show first if there's active stream and not first visit */}
+        {shouldShowLiveFirst && (
+          <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2">
+              <LiveStreamCard
+                variant="hero"
+                onWatchClick={handleLiveStreamClick}
+                onChatToggle={handleChatToggle}
+                showChat={showChat}
+              />
             </div>
-          </div>
 
-          <ContentGrid 
-            items={filteredContent} 
-            loading={loading} 
-            onItemClick={handleContentClick}
-          />
-        </div>
+            <div className="lg:col-span-1">
+              {showChat ? (
+                <Card className="h-full">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="font-semibold text-zinc-900 dark:text-zinc-100">
+                        Chat en Vivo
+                      </h3>
+                      <button
+                        onClick={handleChatToggle}
+                        className="text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300 transition-colors"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    
+                    <div className="h-96 bg-zinc-50 dark:bg-zinc-800 rounded-lg flex items-center justify-center">
+                      <div className="text-center text-zinc-500 dark:text-zinc-400">
+                        <div className="text-2xl mb-2">💬</div>
+                        <p className="text-sm font-medium">Chat Component</p>
+                        <p className="text-xs">Por implementar</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card className="h-full">
+                  <CardContent className="p-6">
+                    <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
+                      Acerca del Evento
+                    </h3>
+                    <div className="space-y-4 text-sm text-zinc-600 dark:text-zinc-400">
+                      <p className="line-clamp-3">{currentLive.description}</p>
+                      
+                      <div className="border-t border-zinc-200 dark:border-zinc-700 pt-4">
+                        <h4 className="font-medium text-zinc-900 dark:text-zinc-100 mb-2">
+                          Detalles del Evento
+                        </h4>
+                        <ul className="space-y-2">
+                          <li>📅 Iniciado: {new Date(currentLive.actualStart || currentLive.scheduledStart!).toLocaleString('es-ES')}</li>
+                          <li>🏫 Facultad: {currentLive.facultyId?.toUpperCase()}</li>
+                          <li>🎥 Grabación: {currentLive.recording.enabled ? 'Sí' : 'No'}</li>
+                          <li>💬 Chat: {currentLive.chat.enabled ? 'Activo' : 'Deshabilitado'}</li>
+                        </ul>
+                      </div>
+
+                      <div className="pt-4 border-t border-zinc-200 dark:border-zinc-700">
+                        <button
+                          onClick={handleChatToggle}
+                          className="w-full px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors text-sm font-medium"
+                        >
+                          Abrir Chat
+                        </button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </section>
+        )}
+
+        {/* Hero Section - Full hero for first visits, compact if live stream active */}
+        {shouldShowFullHero ? (
+          <HeroSection />
+        ) : !shouldShowLiveFirst && currentLive ? (
+          <section>
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
+                Transmisión en Vivo
+              </h2>
+            </div>
+            <LiveStreamCard
+              variant="featured"
+              onWatchClick={handleLiveStreamClick}
+              onChatToggle={handleChatToggle}
+              showChat={showChat}
+            />
+          </section>
+        ) : null}
+        
+        {/* Faculties Grid */}
+        <FacultiesGrid onFacultyClick={handleFacultyClick} />
+        
+        {/* Featured Content */}
+        <FeaturedContent onContentClick={handleContentClick} />
+        
+        {/* Stats Section */}
+        <StatsSection />
       </div>
-    </CMSLayout>
-  );
-};
+    </ContentLayout>
+  )
+}

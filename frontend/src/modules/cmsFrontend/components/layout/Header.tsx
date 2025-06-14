@@ -1,81 +1,130 @@
-// frontend/src/modules/cmsFrontend/components/layout/Header.tsx
-import React from 'react';
-import { Search, Sun, Moon, Menu } from 'lucide-react';
-import { useTheme } from '../../context/ThemeContext';
+// src/modules/cmsFrontend/components/layout/Header.tsx
+import React from 'react'
+import { Search, Sun, Moon, Menu, X } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { useTheme } from '../../context/ThemeContext'
+import { Button } from '../ui/Button'
+import { SearchInput } from '../ui/Input'
+import { cn } from '../../utils/cn'
 
-export const Header: React.FC = () => {
-  const { isDark, toggleTheme } = useTheme();
-  
+interface HeaderProps {
+  onMenuToggle?: () => void
+  isMenuOpen?: boolean
+  showSearch?: boolean
+  className?: string
+}
+
+export const Header: React.FC<HeaderProps> = ({
+  onMenuToggle,
+  isMenuOpen = false,
+  showSearch = true,
+  className
+}) => {
+  const { isDark, toggleTheme } = useTheme()
+  const [searchQuery, setSearchQuery] = React.useState('')
+  const [isSearchFocused, setIsSearchFocused] = React.useState(false)
+
+  const handleSearch = (value: string) => {
+    setSearchQuery(value)
+    console.log('Searching for:', value)
+  }
+
   return (
-    <header className={`sticky top-0 z-50 border-b ${
-      isDark 
-        ? 'bg-slate-800/95 border-slate-700 backdrop-blur' 
-        : 'bg-white/95 border-slate-200 backdrop-blur'
-    }`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <div className="flex items-center gap-3">
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-              isDark ? 'bg-blue-600' : 'bg-blue-600'
-            }`}>
-              <span className="text-white font-bold text-sm">ML</span>
-            </div>
-            <div>
-              <h1 className={`text-xl font-bold ${
-                isDark ? 'text-slate-100' : 'text-slate-900'
-              }`}>
-                MediaLab
-              </h1>
-              <p className={`text-xs ${
-                isDark ? 'text-slate-400' : 'text-slate-500'
-              }`}>
-                Universidad Galileo
-              </p>
+    <header className={cn(
+      'sticky top-0 z-40 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:bg-zinc-950/95 dark:supports-[backdrop-filter]:bg-zinc-950/60',
+      'border-zinc-200 dark:border-zinc-800',
+      className
+    )}>
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex h-14 items-center justify-between">
+          {/* Logo y Menu Mobile */}
+          <div className="flex items-center gap-4">
+            {/* Menu Toggle (Mobile) */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="lg:hidden h-8 w-8"
+              onClick={onMenuToggle}
+            >
+              <motion.div
+                initial={false}
+                animate={{ rotate: isMenuOpen ? 180 : 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                {isMenuOpen ? (
+                  <X className="h-4 w-4" />
+                ) : (
+                  <Menu className="h-4 w-4" />
+                )}
+              </motion.div>
+            </Button>
+
+            {/* Logo */}
+            <div className="flex items-center gap-3">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary-600">
+                <span className="text-xs font-bold text-white">ML</span>
+              </div>
+              <div className="hidden sm:block">
+                <h1 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
+                  MediaLab
+                </h1>
+              </div>
             </div>
           </div>
 
-          {/* Search Bar */}
-          <div className="hidden md:flex flex-1 max-w-md mx-8">
-            <div className="relative w-full">
-              <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${
-                isDark ? 'text-slate-400' : 'text-slate-500'
-              }`} />
-              <input
-                type="text"
+          {/* Search Bar (Desktop) */}
+          {showSearch && (
+            <div className="hidden md:flex flex-1 max-w-sm mx-8">
+              <SearchInput
                 placeholder="Buscar contenido..."
-                className={`w-full pl-10 pr-4 py-2 rounded-lg border transition-colors ${
-                  isDark 
-                    ? 'bg-slate-700 border-slate-600 text-slate-100 placeholder-slate-400 focus:border-blue-500' 
-                    : 'bg-white border-slate-300 text-slate-900 placeholder-slate-500 focus:border-blue-500'
-                } focus:outline-none focus:ring-2 focus:ring-blue-500/20`}
+                value={searchQuery}
+                onSearch={handleSearch}
+                className="w-full h-9"
               />
             </div>
-          </div>
+          )}
 
           {/* Actions */}
           <div className="flex items-center gap-2">
-            <button
+            {/* Search Mobile */}
+            {showSearch && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden h-8 w-8"
+              >
+                <Search className="h-4 w-4" />
+              </Button>
+            )}
+
+            {/* Theme Toggle */}
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={toggleTheme}
-              className={`p-2 rounded-lg transition-colors ${
-                isDark
-                  ? 'hover:bg-slate-700 text-slate-300 hover:text-slate-100'
-                  : 'hover:bg-slate-100 text-slate-600 hover:text-slate-900'
-              }`}
+              className="relative h-8 w-8"
             >
-              {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </button>
-            
-            <button className={`md:hidden p-2 rounded-lg transition-colors ${
-              isDark
-                ? 'hover:bg-slate-700 text-slate-300'
-                : 'hover:bg-slate-100 text-slate-600'
-            }`}>
-              <Menu className="w-5 h-5" />
-            </button>
+              <Sun className={cn(
+                "h-4 w-4 transition-all",
+                isDark ? "rotate-90 scale-0" : "rotate-0 scale-100"
+              )} />
+              <Moon className={cn(
+                "absolute h-4 w-4 transition-all",
+                isDark ? "rotate-0 scale-100" : "-rotate-90 scale-0"
+              )} />
+              <span className="sr-only">Toggle theme</span>
+            </Button>
+
+            {/* Live Indicator */}
+            <div className="hidden sm:flex items-center gap-2 px-2 py-1 bg-red-500/10 border border-red-500/20 rounded-full">
+              <div className="h-1.5 w-1.5 bg-red-500 rounded-full animate-pulse" />
+              <span className="text-xs font-medium text-red-600 dark:text-red-400">
+                EN VIVO
+              </span>
+            </div>
           </div>
         </div>
       </div>
     </header>
-  );
-};
+  )
+}
